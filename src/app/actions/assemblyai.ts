@@ -1,7 +1,7 @@
 "use server";
 
 import { AssemblyAI } from "assemblyai";
-import { Intel } from "@/types/intel";
+import { Intel, KeySection } from "@/types/intel";
 
 const assemblyai = new AssemblyAI({
   apiKey: process.env.ASSEMBLYAI_API_KEY!,
@@ -18,6 +18,9 @@ export const generateIntel = async (fileUrl: string): Promise<Intel> => {
     summarization: true,
     summary_model: 'conversational',
     summary_type: 'bullets',
+    sentiment_analysis: true,
+    entity_detection: true,
+    iab_categories: true,
   });
 
 
@@ -26,16 +29,41 @@ export const generateIntel = async (fileUrl: string): Promise<Intel> => {
     throw new Error(transcript.error);
   }
 
+  const keySections: KeySection[] = [];
 
-  // Step 2: Define a summarization prompt.
-  const prompt = 'Provide overall sentiment analysis of the transcript - positive, negative, or neutral.'
+  // Get the parts of the transcript that were tagged with topics
+  for (const result of transcript.iab_categories_result!.results) {
+    keySections.push({
+      text: result.text!,
+      timestamp: result.timestamp!,
+    })
+  }
+
+
+
+  let prompt = `Provide Actionable Insights from the transcript. Do not provide a preamble.
+
+Answer Format:
+[{"insight": "<insight>"}]`
 
   // Step 3: Apply LeMUR.
-  const { response } = await assemblyai.lemur.task({
+  const { response: actionableInsights } = await assemblyai.lemur.task({
     transcript_ids: [transcript.id],
     prompt,
     final_model: 'anthropic/claude-3-5-sonnet'
   })
+
+  const actionableInsightsArray = JSON.parse(actionableInsights).map((insight: { insight: string }) => insight.insight);
+
+  prompt = `Provide a title for the transcript. Do not provide a preamble.`
+
+  // Step 3: Apply LeMUR.
+  const { response: title } = await assemblyai.lemur.task({
+    transcript_ids: [transcript.id],
+    prompt,
+    final_model: 'anthropic/claude-3-5-sonnet'
+  })
+
 
   console.log("Transcript generated successfully.");
 
@@ -43,6 +71,10 @@ export const generateIntel = async (fileUrl: string): Promise<Intel> => {
     transcript: transcript.text!,
     transcriptUtterances: transcript.utterances!,
     summary: transcript.summary!,
-    sentiment: response,
+    sentiment: transcript.sentiment_analysis!,
+    sentimentResults: transcript.sentiment_analysis_results!,
+    actionableInsights: actionableInsightsArray,
+    title: title,
+    keySections: keySections,
   };
 };
