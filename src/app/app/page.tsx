@@ -1887,7 +1887,11 @@ export default function AppPage() {
             disabled={isLoading}
             size="sm"
             variant="destructive"
-            onClick={() => setFileData(null)}
+            onClick={() => {
+              setFileData(null);
+              setFiles([]);
+              setIntel(null);
+            }}
           >
             Remove
           </Button>
