@@ -68,6 +68,7 @@ Answer Format:
   console.log("Transcript generated successfully.");
 
   return {
+    id: transcript.id,
     transcript: transcript.text!,
     transcriptUtterances: transcript.utterances!,
     summary: transcript.summary!,
@@ -78,3 +79,20 @@ Answer Format:
     keySections: keySections,
   };
 };
+
+
+export const translate = async (transcriptId: string, to: string): Promise<string> => {
+
+  const prompt = `Translate the transcript to ${to}. Do not provide a preamble.`
+
+  // Step 3: Apply LeMUR.
+  const { response: translatedTranscript } = await assemblyai.lemur.task({
+    transcript_ids: [transcriptId],
+    prompt,
+    final_model: 'anthropic/claude-3-5-sonnet'
+  })
+
+  return translatedTranscript;
+
+
+}

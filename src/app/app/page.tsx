@@ -2,10 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { generateIntel } from "../actions/assemblyai";
+import { generateIntel } from "@/app/actions/assemblyai";
 import { UploadDropzone } from "@/lib/uploadthing";
 import { Intel } from "@/types/intel";
 import { ClientUploadedFileData } from "uploadthing/types";
+import { translateTranscript } from "@/app/actions/translate";
 import {
   Accordion,
   AccordionContent,
@@ -20,15 +21,68 @@ import {
   UsersIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 export default function AppPage() {
+  const [mode, setMode] = useState<"file" | "audio" | "youtube">("file");
   const [fileData, setFileData] = useState<ClientUploadedFileData<{
     url: string;
   }> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [intel, setIntel] = useState<Intel | null>(null);
+  const [translatedIntel, setTranslatedIntel] = useState<Intel | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [overallSentiment, setOverallSentiment] = useState<string | null>(null);
+
+  const supportedLanguages = [
+    {
+      language: "en",
+      label: "English",
+    },
+    {
+      language: "hi",
+      label: "Hindi",
+    },
+    {
+      language: "es",
+      label: "Spanish",
+    },
+    {
+      language: "fr",
+      label: "French",
+    },
+    {
+      language: "de",
+      label: "German",
+    },
+    {
+      language: "ja",
+      label: "Japanese",
+    },
+    {
+      language: "zh",
+      label: "Chinese",
+    },
+    {
+      language: "ar",
+      label: "Arabic",
+    },
+    {
+      language: "it",
+      label: "Italian",
+    },
+    {
+      language: "pt",
+      label: "Portuguese",
+    },
+  ];
 
   const handleGenerateIntel = async () => {
     if (fileData) {
@@ -1869,11 +1923,24 @@ export default function AppPage() {
     }
   };
 
+  const handleTranslate = async (to: string) => {
+    const translatedTranscript = await translateTranscript(
+      intel!.transcriptUtterances!,
+      to
+    );
+    console.log("Translated Transcript", translatedTranscript);
+    setIntel({
+      ...intel!,
+      transcriptUtterances: translatedTranscript,
+    });
+  };
+
   return (
     <div className="p-4">
       <h1 className="text-2xl md:text-3xl font-bold">Generate Audio Intel</h1>
       <p className="mt-2 text-sm md:text-base text-muted-foreground">
-        Upload your audio file and generate actionable insights.
+        Upload or record audio or youtube video and generate actionable
+        insights.
       </p>
       {fileData ? (
         <div className="flex justify-between items-center mt-4">
@@ -1882,6 +1949,16 @@ export default function AppPage() {
             <p className="text-sm text-muted-foreground">
               Size: {(fileData.size / (1024 * 1024)).toFixed(2)} MB
             </p>
+            <div className="flex flex-col gap-2">
+              <div className="w-full h-12 bg-gray-100 rounded-lg overflow-hidden">
+                <audio
+                  id="audioPlayer"
+                  src={fileData.url}
+                  controls
+                  className="w-full"
+                />
+              </div>
+            </div>
           </div>
           <Button
             disabled={isLoading}
@@ -1897,31 +1974,72 @@ export default function AppPage() {
           </Button>
         </div>
       ) : (
-        <UploadDropzone
-          endpoint="uploader"
-          onChange={(files) => {
-            console.log("Files", files);
-            setFiles(files);
-          }}
-          onClientUploadComplete={(res) => {
-            console.log("Files", res);
-            console.log("Files uploaded");
-            setFileData(res[0]);
-          }}
-          onUploadError={(error) => {
-            console.error(error);
-            setFileData(null);
-          }}
-          config={{
-            mode: "auto",
-          }}
-        />
+        <div className="flex flex-col gap-2 mt-4">
+          <RadioGroup
+            onValueChange={(value) =>
+              setMode(value as "file" | "audio" | "youtube")
+            }
+            defaultValue="file"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="file" id="file" />
+              <Label htmlFor="file">Audio File</Label>
+
+              <RadioGroupItem value="audio" id="audio" />
+              <Label htmlFor="audio">Record Audio</Label>
+
+              <RadioGroupItem value="youtube" id="youtube" />
+              <Label htmlFor="youtube">Youtube Video</Label>
+            </div>
+          </RadioGroup>
+
+          {mode === "file" && (
+            <UploadDropzone
+              endpoint="uploader"
+              onChange={(files) => {
+                console.log("Files", files);
+                setFiles(files);
+              }}
+              onClientUploadComplete={(res) => {
+                console.log("Files", res);
+                console.log("Files uploaded");
+                setFileData(res[0]);
+              }}
+              onUploadError={(error) => {
+                console.error(error);
+                setFileData(null);
+              }}
+              config={{
+                mode: "auto",
+              }}
+            />
+          )}
+          {mode === "audio" && <></>}
+          {mode === "youtube" && <></>}
+        </div>
       )}
       {fileData && (
         <div className="mt-4">
           <Button onClick={handleGenerateIntel} disabled={isLoading}>
             {isLoading ? "Generating..." : "Generate Intel"}
           </Button>
+        </div>
+      )}
+      {isLoading && (
+        <div className="mt-8 flex text-center flex-col items-center justify-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-black">
+            <div className="absolute inset-0 h-full w-full animate-ping rounded-full border-4 border-black opacity-75"></div>
+          </div>
+          <p className="text-sm text-gray-500 animate-pulse">
+            Analyzing audio and generating insights...
+            <br />
+            This may take a few seconds
+          </p>
+          <div className="flex gap-1">
+            <div className="h-2 w-2 rounded-full bg-black animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="h-2 w-2 rounded-full bg-black animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="h-2 w-2 rounded-full bg-black animate-bounce"></div>
+          </div>
         </div>
       )}
       {intel && (
@@ -1931,7 +2049,7 @@ export default function AppPage() {
               <UsersIcon className="h-4 w-4" />
               <div>
                 <p className="text-xs md:text-sm font-medium">Speakers</p>
-                <p className="text-2xl font-bold">
+                <p className="text-lg md:text-2xl font-bold">
                   {intel.transcriptUtterances
                     ? new Set(intel.transcriptUtterances.map((u) => u.speaker))
                         .size
@@ -1944,7 +2062,7 @@ export default function AppPage() {
               <ClockIcon className="h-4 w-4" />
               <div>
                 <p className="text-xs md:text-sm font-medium">Duration</p>
-                <p className="text-2xl font-bold">
+                <p className="text-lg md:text-2xl font-bold">
                   {intel.transcriptUtterances
                     ? Math.round(
                         intel.transcriptUtterances[
@@ -1963,143 +2081,191 @@ export default function AppPage() {
                 <p className="text-xs md:text-sm font-medium">
                   Overall Sentiment
                 </p>
-                <p className="text-2xl font-bold">{overallSentiment}</p>
+                <p className="text-lg md:text-2xl font-bold">
+                  {overallSentiment}
+                </p>
               </div>
             </div>
           </div>
           <h2 className="text-2xl mb-2 font-bold">Title: {intel.title}</h2>
-          <Accordion
-            defaultValue="summary"
-            type="single"
-            collapsible
-            className="mb-4"
-          >
-            <AccordionItem value="summary">
-              <AccordionTrigger className="text-lg font-bold">
-                Summary
-              </AccordionTrigger>
-              <AccordionContent className="text-base">
-                {intel.summary}
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="sentiment">
-              <AccordionTrigger className="text-lg font-bold">
-                Sentiment Analysis
-              </AccordionTrigger>
-              <AccordionContent className="text-base">
-                {intel.sentimentResults && (
-                  <div className="w-full h-8 flex rounded-lg overflow-hidden">
-                    {intel.sentimentResults.map((result, index) => {
-                      const duration = result.end - result.start;
-                      const totalDuration = intel.sentimentResults
-                        ? intel.sentimentResults[
-                            intel.sentimentResults.length - 1
-                          ]?.end - intel.sentimentResults[0]?.start
-                        : 100;
 
-                      const width = (duration / totalDuration) * 100;
+          <Tabs defaultValue="overview" className="w-full mt-4">
+            <TabsList className="mb-4 w-full">
+              <TabsTrigger value="overview" className="w-full">
+                <LightbulbIcon className="h-4 w-4 mr-2" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="transcript" className="w-full">
+                <BookmarkIcon className="h-4 w-4 mr-2" />
+                Transcript
+              </TabsTrigger>
+              <TabsTrigger value="chat" className="w-full">
+                <MessageSquareIcon className="h-4 w-4 mr-2" />
+                Chat
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview">
+              <div className="bg-white rounded-lg p-4 shadow-sm border  w-full">
+                <Accordion
+                  defaultValue="summary"
+                  type="single"
+                  collapsible
+                  className="mb-4"
+                >
+                  <AccordionItem value="summary">
+                    <AccordionTrigger className="text-lg font-bold">
+                      Summary
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                      {intel.summary}
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="sentiment">
+                    <AccordionTrigger className="text-lg font-bold">
+                      Sentiment Analysis
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                      {intel.sentimentResults && (
+                        <div className="w-full h-8 flex rounded-lg overflow-hidden">
+                          {intel.sentimentResults.map((result, index) => {
+                            const duration = result.end - result.start;
+                            const totalDuration = intel.sentimentResults
+                              ? intel.sentimentResults[
+                                  intel.sentimentResults.length - 1
+                                ]?.end - intel.sentimentResults[0]?.start
+                              : 100;
 
-                      const bgColor =
-                        result.sentiment === "POSITIVE"
-                          ? "bg-green-200"
-                          : result.sentiment === "NEGATIVE"
-                          ? "bg-red-200"
-                          : "bg-gray-200";
+                            const width = (duration / totalDuration) * 100;
 
-                      return (
+                            const bgColor =
+                              result.sentiment === "POSITIVE"
+                                ? "bg-green-200"
+                                : result.sentiment === "NEGATIVE"
+                                ? "bg-red-200"
+                                : "bg-gray-200";
+
+                            return (
+                              <div
+                                key={index}
+                                className={`h-full ${bgColor} hover:opacity-80 transition-opacity`}
+                                style={{ width: `${width}%` }}
+                                title={`${result.sentiment} (${Math.floor(
+                                  result.start / 1000
+                                )}s - ${Math.floor(result.end / 1000)}s)`}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+                      <div className="mt-4">
+                        {intel.sentimentResults && (
+                          <div className="flex gap-4 ">
+                            {["POSITIVE", "NEUTRAL", "NEGATIVE"].map(
+                              (sentiment) => {
+                                const count = intel.sentimentResults!.filter(
+                                  (result) => result.sentiment === sentiment
+                                ).length;
+                                const percentage = Math.round(
+                                  (count / intel.sentimentResults!.length) * 100
+                                );
+
+                                const bgColor =
+                                  sentiment === "POSITIVE"
+                                    ? "bg-green-100"
+                                    : sentiment === "NEGATIVE"
+                                    ? "bg-red-100"
+                                    : "bg-gray-100";
+
+                                return (
+                                  <div
+                                    key={sentiment}
+                                    className={`px-4 py-2 rounded-lg ${bgColor}`}
+                                  >
+                                    <p className="text-sm font-medium">
+                                      {sentiment}
+                                    </p>
+                                    <p className="text-xl font-bold">
+                                      {percentage}%
+                                    </p>
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="actionableInsights">
+                    <AccordionTrigger className="text-lg font-bold">
+                      Actionable Insights
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                      {intel.actionableInsights?.map((insight, index) => (
+                        <div key={index}>
+                          <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100 mr-2 mb-2">
+                            <LightbulbIcon className="text-yellow-800 h-4 w-4" />
+                          </div>
+                          {insight}
+                        </div>
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="keySections">
+                    <AccordionTrigger className="text-lg font-bold">
+                      Key Sections
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                      {intel.keySections?.map((section, index) => (
                         <div
                           key={index}
-                          className={`h-full ${bgColor} hover:opacity-80 transition-opacity`}
-                          style={{ width: `${width}%` }}
-                          title={`${result.sentiment} (${Math.floor(
-                            result.start / 1000
-                          )}s - ${Math.floor(result.end / 1000)}s)`}
-                        />
-                      );
-                    })}
-                  </div>
-                )}
-                <div className="mt-4">
-                  {intel.sentimentResults && (
-                    <div className="flex gap-4 ">
-                      {["POSITIVE", "NEUTRAL", "NEGATIVE"].map((sentiment) => {
-                        const count = intel.sentimentResults!.filter(
-                          (result) => result.sentiment === sentiment
-                        ).length;
-                        const percentage = Math.round(
-                          (count / intel.sentimentResults!.length) * 100
-                        );
-
-                        const bgColor =
-                          sentiment === "POSITIVE"
-                            ? "bg-green-100"
-                            : sentiment === "NEGATIVE"
-                            ? "bg-red-100"
-                            : "bg-gray-100";
-
-                        return (
-                          <div
-                            key={sentiment}
-                            className={`px-4 py-2 rounded-lg ${bgColor}`}
-                          >
-                            <p className="text-sm font-medium">{sentiment}</p>
-                            <p className="text-xl font-bold">{percentage}%</p>
+                          className="mb-4 rounded-lg border p-3 bg-gray-50"
+                        >
+                          <div className="mb-2 flex items-center gap-2">
+                            <BookmarkIcon className="h-4 w-4" />
+                            <p className="text-sm font-medium">
+                              {Math.floor(section.timestamp.start / 1000 / 60)}:
+                              {String(
+                                Math.floor(
+                                  (section.timestamp.start / 1000) % 60
+                                )
+                              ).padStart(2, "0")}{" "}
+                              - {Math.floor(section.timestamp.end / 1000 / 60)}:
+                              {String(
+                                Math.floor((section.timestamp.end / 1000) % 60)
+                              ).padStart(2, "0")}
+                            </p>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                          <p>{section.text}</p>
+                        </div>
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            </TabsContent>
+            <TabsContent value="transcript">
+              <div className="bg-white rounded-lg p-4 shadow-sm border  w-full">
+                <div className="flex my-4 justify-end gap-4">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button>Translate</Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <div className="flex flex-col gap-2">
+                        {supportedLanguages.map((language) => (
+                          <div
+                            className="px-4 py-2 rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
+                            key={language.language}
+                            onClick={() => handleTranslate(language.language)}
+                          >
+                            {language.label}
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="actionableInsights">
-              <AccordionTrigger className="text-lg font-bold">
-                Actionable Insights
-              </AccordionTrigger>
-              <AccordionContent className="text-base">
-                {intel.actionableInsights?.map((insight, index) => (
-                  <div key={index}>
-                    <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100 mr-2 mb-2">
-                      <LightbulbIcon className="text-yellow-800 h-4 w-4" />
-                    </div>
-                    {insight}
-                  </div>
-                ))}
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="keySections">
-              <AccordionTrigger className="text-lg font-bold">
-                Key Sections
-              </AccordionTrigger>
-              <AccordionContent className="text-base">
-                {intel.keySections?.map((section, index) => (
-                  <div
-                    key={index}
-                    className="mb-4 rounded-lg border p-3 bg-gray-50"
-                  >
-                    <div className="mb-2 flex items-center gap-2">
-                      <BookmarkIcon className="h-4 w-4" />
-                      <p className="text-sm font-medium">
-                        {Math.floor(section.timestamp.start / 1000 / 60)}:
-                        {String(
-                          Math.floor((section.timestamp.start / 1000) % 60)
-                        ).padStart(2, "0")}{" "}
-                        - {Math.floor(section.timestamp.end / 1000 / 60)}:
-                        {String(
-                          Math.floor((section.timestamp.end / 1000) % 60)
-                        ).padStart(2, "0")}
-                      </p>
-                    </div>
-                    <p>{section.text}</p>
-                  </div>
-                ))}
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="transcript">
-              <AccordionTrigger className="text-lg font-bold">
-                Full Transcript
-              </AccordionTrigger>
-              <AccordionContent className="text-base">
                 {intel.transcriptUtterances?.map((utterance, index) => (
                   <div key={index}>
                     <div
@@ -2134,13 +2300,79 @@ export default function AppPage() {
                           )
                         </p>
                       </div>
-                      <p>{utterance.text}</p>
+                      <p
+                        dangerouslySetInnerHTML={{ __html: utterance.text }}
+                      ></p>
                     </div>
                   </div>
                 ))}
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+              </div>
+            </TabsContent>
+            <TabsContent value="chat">
+              <div className="bg-white rounded-lg p-4 shadow-sm border  w-full">
+                <div className="flex my-4 justify-end gap-4">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button>Translate</Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <div className="flex flex-col gap-2">
+                        {supportedLanguages.map((language) => (
+                          <div
+                            className="px-4 py-2 rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
+                            key={language.language}
+                            onClick={() => handleTranslate(language.language)}
+                          >
+                            {language.label}
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                {intel.transcriptUtterances?.map((utterance, index) => (
+                  <div key={index}>
+                    <div
+                      className={`mb-4 rounded-lg border p-3 ${
+                        utterance.speaker === "A"
+                          ? "bg-blue-50"
+                          : utterance.speaker === "B"
+                          ? "bg-green-50"
+                          : utterance.speaker === "C"
+                          ? "bg-yellow-50"
+                          : utterance.speaker === "D"
+                          ? "bg-purple-50"
+                          : utterance.speaker === "E"
+                          ? "bg-pink-50"
+                          : utterance.speaker === "F"
+                          ? "bg-orange-50"
+                          : "bg-gray-50"
+                      }`}
+                    >
+                      <div className="mb-2 flex items-center gap-2">
+                        <UsersIcon className="h-4 w-4" />
+                        <p className="text-sm font-medium">
+                          Speaker {utterance.speaker} (
+                          {Math.floor(utterance.start / 1000 / 60)}:
+                          {String(
+                            Math.floor((utterance.start / 1000) % 60)
+                          ).padStart(2, "0")}{" "}
+                          - {Math.floor(utterance.end / 1000 / 60)}:
+                          {String(
+                            Math.floor((utterance.end / 1000) % 60)
+                          ).padStart(2, "0")}
+                          )
+                        </p>
+                      </div>
+                      <p
+                        dangerouslySetInnerHTML={{ __html: utterance.text }}
+                      ></p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
     </div>

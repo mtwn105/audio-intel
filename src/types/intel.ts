@@ -9,6 +9,7 @@ export type KeySection = {
 }
 
 export type Intel = {
+  id: string;
   transcript: string;
   transcriptUtterances: TranscriptUtterance[] | null;
   summary: string;
