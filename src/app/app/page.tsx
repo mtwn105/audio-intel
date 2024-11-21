@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { generateIntel } from "@/app/actions/assemblyai";
 import { UploadDropzone } from "@/lib/uploadthing";
 import { Intel } from "@/types/intel";
@@ -31,7 +31,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { youtubeToMp3 } from "../actions/youtube";
-import { Message } from "@/app/actions/chat";
+import { chat, Message } from "@/app/actions/chat";
 export default function AppPage() {
   const [mode, setMode] = useState<"file" | "audio" | "youtube">("file");
   const [fileData, setFileData] = useState<ClientUploadedFileData<{
@@ -39,12 +39,12 @@ export default function AppPage() {
   }> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [intel, setIntel] = useState<Intel | null>(null);
-  const [translatedIntel, setTranslatedIntel] = useState<Intel | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [overallSentiment, setOverallSentiment] = useState<string | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState<string>("");
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [userMessage, setUserMessage] = useState<string>("");
 
   const supportedLanguages = [
     {
@@ -1928,11 +1928,11 @@ export default function AppPage() {
     }
   };
 
-  function isValidYouTubeUrl(url: string) {
+  const isValidYouTubeUrl = (url: string) => {
     const youtubeRegex =
       /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/)?([a-zA-Z0-9_-]{11})(\S+)?$/;
     return youtubeRegex.test(url);
-  }
+  };
 
   const handleGenerateIntelFromYoutube = async () => {
     // Validate youtube url
@@ -1981,6 +1981,36 @@ export default function AppPage() {
       ...intel!,
       transcriptUtterances: translatedTranscript,
     });
+  };
+
+  const handleSendMessage = async () => {
+    if (userMessage.length === 0) return;
+
+    // Create new array with current message
+    const newMessages = [
+      ...messages,
+      { role: "user" as "user" | "assistant", content: userMessage },
+    ];
+
+    // Update messages state
+    setMessages(newMessages);
+
+    // Clear input
+    setUserMessage("");
+
+    try {
+      // Call chat API with new messages
+      const assistantMessage = await chat(
+        intel!.id!,
+        newMessages[newMessages.length - 1]
+      );
+
+      // Update with response
+      setMessages([...newMessages, assistantMessage]);
+    } catch (error) {
+      console.error(error);
+      toast.error("Error sending message");
+    }
   };
 
   return (
@@ -2437,8 +2467,8 @@ export default function AppPage() {
                   <div className="flex gap-2">
                     <Input
                       placeholder="Type your message..."
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
+                      value={userMessage}
+                      onChange={(e) => setUserMessage(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           handleSendMessage();
