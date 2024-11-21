@@ -45,7 +45,7 @@ export const generateIntel = async (fileUrl: string): Promise<Intel> => {
     const prompt = `Provide Actionable Insights from the transcript. Do not provide a preamble.
 
 Answer Format:
-[{"insight": "<insight>"}]`
+[{"insight": "<insight>"}, {"insight": "<insight>"}, {"insight": "<insight>"}]`
 
     // Step 3: Apply LeMUR.
     const { response: actionableInsights } = await assemblyai.lemur.task({
@@ -54,8 +54,13 @@ Answer Format:
       final_model: 'anthropic/claude-3-5-sonnet'
     })
 
+    console.log("Actionable Insights: ", actionableInsights);
+
     // extract part with [ { ... } ]
-    const jsonPart = actionableInsights.split("[")[1].split("]")[0];
+    const jsonPart = "[" + actionableInsights.split("[")[1].split("]")[0] + "]";
+
+    console.log("JSON Part: ", jsonPart);
+
     actionableInsightsArray = JSON.parse(jsonPart).map((insight: { insight: string }) => insight.insight);
   } catch (error) {
     console.error(error);
@@ -95,18 +100,12 @@ Answer Format:
 };
 
 
-export const translate = async (transcriptId: string, to: string): Promise<string> => {
+export const uploadAudio = async (file: Blob): Promise<string> => {
 
-  const prompt = `Translate the transcript to ${to}. Do not provide a preamble.`
+  console.log("Generating Intel... for file: ", file);
 
-  // Step 3: Apply LeMUR.
-  const { response: translatedTranscript } = await assemblyai.lemur.task({
-    transcript_ids: [transcriptId],
-    prompt,
-    final_model: 'anthropic/claude-3-5-sonnet'
-  })
+  const fileUrl = await assemblyai.files.upload(file);
 
-  return translatedTranscript;
+  return fileUrl;
 
-
-}
+};

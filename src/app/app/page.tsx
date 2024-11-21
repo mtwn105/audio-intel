@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { generateIntel } from "@/app/actions/assemblyai";
+import { useState } from "react";
+import { generateIntel, uploadAudio } from "@/app/actions/assemblyai";
 import { UploadDropzone } from "@/lib/uploadthing";
 import { Intel } from "@/types/intel";
 import { ClientUploadedFileData } from "uploadthing/types";
@@ -18,6 +18,9 @@ import {
   ClockIcon,
   LightbulbIcon,
   MessageSquareIcon,
+  Mic2Icon,
+  PlayCircleIcon,
+  StopCircleIcon,
   UsersIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -45,6 +48,12 @@ export default function AppPage() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [userMessage, setUserMessage] = useState<string>("");
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
+  const [hasPermission, setHasPermission] = useState(false);
 
   const supportedLanguages = [
     {
@@ -1971,6 +1980,41 @@ export default function AppPage() {
     }
   };
 
+  const handleGenerateIntelFromRecord = async () => {
+    if (files.length === 0) return;
+
+    try {
+      setIsLoading(true);
+      setIntel(null);
+
+      console.log("Generating intel from record");
+
+      const fileUrl = await uploadAudio(files[0]);
+
+      console.log("File URL", fileUrl);
+
+      if (fileUrl) {
+        const intel = await generateIntel(fileUrl);
+        setIntel(intel as Intel);
+        setOverallSentiment(
+          intel.sentimentResults
+            ? intel.sentimentResults.filter((r) => r.sentiment === "POSITIVE")
+                .length >
+              intel.sentimentResults.filter((r) => r.sentiment === "NEGATIVE")
+                .length
+              ? "Positive"
+              : "Negative"
+            : "Neutral"
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error generating intel");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleTranslate = async (to: string) => {
     const translatedTranscript = await translateTranscript(
       intel!.transcriptUtterances!,
@@ -2092,7 +2136,125 @@ export default function AppPage() {
               }}
             />
           )}
-          {mode === "audio" && <></>}
+          {mode === "audio" && (
+            <div>
+              <div className="flex border rounded-lg p-4 mt-4 flex-col gap-4">
+                <div className="flex justify-center space-x-4">
+                  <Button
+                    variant="default"
+                    size="lg"
+                    className="min-w-[150px] gap-2"
+                    onClick={() => {
+                      // @ts-expect-error window.stream is not defined in the global scope
+                      const mediaRecorder = new MediaRecorder(window.stream);
+                      mediaRecorder.start();
+                      setIsRecording(true);
+
+                      const audioChunks: BlobPart[] = [];
+                      mediaRecorder.addEventListener(
+                        "dataavailable",
+                        (event) => {
+                          audioChunks.push(event.data);
+                        }
+                      );
+
+                      mediaRecorder.addEventListener("stop", () => {
+                        const audioBlob = new Blob(audioChunks);
+                        const audioFile = new File(
+                          [audioBlob],
+                          "recording.wav",
+                          {
+                            type: "audio/wav",
+                          }
+                        );
+                        setFiles([audioFile]);
+                      });
+
+                      setMediaRecorder(mediaRecorder);
+                    }}
+                    disabled={!hasPermission || isRecording}
+                  >
+                    <PlayCircleIcon className="h-4 w-4" />
+                    {isRecording ? "Recording..." : "Record"}
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    className="min-w-[150px] gap-2"
+                    onClick={() => {
+                      mediaRecorder?.stop();
+                      setIsRecording(false);
+                    }}
+                    disabled={!isRecording}
+                  >
+                    <StopCircleIcon className="h-4 w-4" />
+                    Stop
+                  </Button>
+                </div>
+
+                {!hasPermission && (
+                  <div className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="min-w-[250px] gap-2"
+                      onClick={async () => {
+                        try {
+                          const stream =
+                            await navigator.mediaDevices.getUserMedia({
+                              audio: true,
+                            });
+                          // @ts-expect-error window.stream is not defined in the global scope
+                          window.stream = stream;
+                          setHasPermission(true);
+                        } catch (err) {
+                          console.error("Error accessing microphone:", err);
+                          toast.error("Could not access microphone");
+                        }
+                      }}
+                    >
+                      <Mic2Icon className="h-4 w-4" />
+                      Allow Microphone Access
+                    </Button>
+                  </div>
+                )}
+
+                {isRecording && (
+                  <div className="flex justify-center items-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
+                    <span className="text-sm text-muted-foreground">
+                      Recording in progress...
+                    </span>
+                  </div>
+                )}
+
+                {files.length > 0 && (
+                  <div className="mt-2">
+                    <div className="w h-12 flex justify-center  rounded-lg overflow-hidden">
+                      <audio
+                        id="audioPlayer"
+                        src={URL.createObjectURL(files[0])}
+                        controls
+                        className="bg-gray-100"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {files.length > 0 && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    disabled={isLoading}
+                    onClick={handleGenerateIntelFromRecord}
+                  >
+                    {isLoading ? "Generating..." : "Generate Intel"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
           {mode === "youtube" && (
             <div>
               <div className="mt-4 flex items-center gap-2">
