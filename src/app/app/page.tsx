@@ -29,7 +29,9 @@ import {
 } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-
+import { Input } from "@/components/ui/input";
+import { youtubeToMp3 } from "../actions/youtube";
+import { Message } from "@/app/actions/chat";
 export default function AppPage() {
   const [mode, setMode] = useState<"file" | "audio" | "youtube">("file");
   const [fileData, setFileData] = useState<ClientUploadedFileData<{
@@ -40,6 +42,9 @@ export default function AppPage() {
   const [translatedIntel, setTranslatedIntel] = useState<Intel | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [overallSentiment, setOverallSentiment] = useState<string | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState<string>("");
+
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const supportedLanguages = [
     {
@@ -1923,6 +1928,49 @@ export default function AppPage() {
     }
   };
 
+  function isValidYouTubeUrl(url: string) {
+    const youtubeRegex =
+      /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/)?([a-zA-Z0-9_-]{11})(\S+)?$/;
+    return youtubeRegex.test(url);
+  }
+
+  const handleGenerateIntelFromYoutube = async () => {
+    // Validate youtube url
+    if (!isValidYouTubeUrl(youtubeUrl)) {
+      toast.error("Invalid Youtube URL");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setIntel(null);
+      console.log("Generating mp3 from youtube");
+      const { url } = await youtubeToMp3(youtubeUrl);
+      console.log("Mp3", url);
+
+      console.log("Generating intel from youtube");
+      const intel = await generateIntel(url);
+      setIntel(intel);
+      console.log("Intel", intel);
+      setIntel(intel as Intel);
+      setOverallSentiment(
+        intel.sentimentResults
+          ? intel.sentimentResults.filter((r) => r.sentiment === "POSITIVE")
+              .length >
+            intel.sentimentResults.filter((r) => r.sentiment === "NEGATIVE")
+              .length
+            ? "Positive"
+            : "Negative"
+          : "Neutral"
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Error generating intel");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleTranslate = async (to: string) => {
     const translatedTranscript = await translateTranscript(
       intel!.transcriptUtterances!,
@@ -2015,7 +2063,38 @@ export default function AppPage() {
             />
           )}
           {mode === "audio" && <></>}
-          {mode === "youtube" && <></>}
+          {mode === "youtube" && (
+            <div>
+              <div className="mt-4 flex items-center gap-2">
+                <Input
+                  disabled={isLoading}
+                  type="text"
+                  placeholder="Enter Youtube Video URL"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                />
+                <Button
+                  disabled={isLoading || !youtubeUrl}
+                  onClick={handleGenerateIntelFromYoutube}
+                >
+                  {isLoading ? "Generating..." : "Generate Intel"}
+                </Button>
+              </div>
+              <div className="mt-4 flex justify-center">
+                {youtubeUrl && (
+                  <iframe
+                    className="w-[560px] h-[315px] rounded-lg"
+                    src={`https://www.youtube.com/embed/${
+                      youtubeUrl.split("v=")[1]
+                    }`}
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
       {fileData && (
@@ -2112,135 +2191,155 @@ export default function AppPage() {
                   collapsible
                   className="mb-4"
                 >
-                  <AccordionItem value="summary">
-                    <AccordionTrigger className="text-lg font-bold">
-                      Summary
-                    </AccordionTrigger>
-                    <AccordionContent className="text-base">
-                      {intel.summary}
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="sentiment">
-                    <AccordionTrigger className="text-lg font-bold">
-                      Sentiment Analysis
-                    </AccordionTrigger>
-                    <AccordionContent className="text-base">
-                      {intel.sentimentResults && (
-                        <div className="w-full h-8 flex rounded-lg overflow-hidden">
-                          {intel.sentimentResults.map((result, index) => {
-                            const duration = result.end - result.start;
-                            const totalDuration = intel.sentimentResults
-                              ? intel.sentimentResults[
-                                  intel.sentimentResults.length - 1
-                                ]?.end - intel.sentimentResults[0]?.start
-                              : 100;
+                  {intel.summary && intel.summary.length > 0 && (
+                    <AccordionItem value="summary">
+                      <AccordionTrigger className="text-lg font-bold">
+                        Summary
+                      </AccordionTrigger>
+                      <AccordionContent className="text-base">
+                        {intel.summary}
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
+                  {intel.sentimentResults &&
+                    intel.sentimentResults.length > 0 && (
+                      <AccordionItem value="sentiment">
+                        <AccordionTrigger className="text-lg font-bold">
+                          Sentiment Analysis
+                        </AccordionTrigger>
+                        <AccordionContent className="text-base">
+                          {intel.sentimentResults && (
+                            <div className="w-full h-8 flex rounded-lg overflow-hidden">
+                              {intel.sentimentResults.map((result, index) => {
+                                const duration = result.end - result.start;
+                                const totalDuration = intel.sentimentResults
+                                  ? intel.sentimentResults[
+                                      intel.sentimentResults.length - 1
+                                    ]?.end - intel.sentimentResults[0]?.start
+                                  : 100;
 
-                            const width = (duration / totalDuration) * 100;
-
-                            const bgColor =
-                              result.sentiment === "POSITIVE"
-                                ? "bg-green-200"
-                                : result.sentiment === "NEGATIVE"
-                                ? "bg-red-200"
-                                : "bg-gray-200";
-
-                            return (
-                              <div
-                                key={index}
-                                className={`h-full ${bgColor} hover:opacity-80 transition-opacity`}
-                                style={{ width: `${width}%` }}
-                                title={`${result.sentiment} (${Math.floor(
-                                  result.start / 1000
-                                )}s - ${Math.floor(result.end / 1000)}s)`}
-                              />
-                            );
-                          })}
-                        </div>
-                      )}
-                      <div className="mt-4">
-                        {intel.sentimentResults && (
-                          <div className="flex gap-4 ">
-                            {["POSITIVE", "NEUTRAL", "NEGATIVE"].map(
-                              (sentiment) => {
-                                const count = intel.sentimentResults!.filter(
-                                  (result) => result.sentiment === sentiment
-                                ).length;
-                                const percentage = Math.round(
-                                  (count / intel.sentimentResults!.length) * 100
-                                );
+                                const width = (duration / totalDuration) * 100;
 
                                 const bgColor =
-                                  sentiment === "POSITIVE"
-                                    ? "bg-green-100"
-                                    : sentiment === "NEGATIVE"
-                                    ? "bg-red-100"
-                                    : "bg-gray-100";
+                                  result.sentiment === "POSITIVE"
+                                    ? "bg-green-200"
+                                    : result.sentiment === "NEGATIVE"
+                                    ? "bg-red-200"
+                                    : "bg-gray-200";
 
                                 return (
                                   <div
-                                    key={sentiment}
-                                    className={`px-4 py-2 rounded-lg ${bgColor}`}
-                                  >
-                                    <p className="text-sm font-medium">
-                                      {sentiment}
-                                    </p>
-                                    <p className="text-xl font-bold">
-                                      {percentage}%
-                                    </p>
-                                  </div>
+                                    key={index}
+                                    className={`h-full ${bgColor} hover:opacity-80 transition-opacity`}
+                                    style={{ width: `${width}%` }}
+                                    title={`${result.sentiment} (${Math.floor(
+                                      result.start / 1000
+                                    )}s - ${Math.floor(result.end / 1000)}s)`}
+                                  />
                                 );
-                              }
+                              })}
+                            </div>
+                          )}
+                          <div className="mt-4">
+                            {intel.sentimentResults && (
+                              <div className="flex gap-4 ">
+                                {["POSITIVE", "NEUTRAL", "NEGATIVE"].map(
+                                  (sentiment) => {
+                                    const count =
+                                      intel.sentimentResults!.filter(
+                                        (result) =>
+                                          result.sentiment === sentiment
+                                      ).length;
+                                    const percentage = Math.round(
+                                      (count / intel.sentimentResults!.length) *
+                                        100
+                                    );
+
+                                    const bgColor =
+                                      sentiment === "POSITIVE"
+                                        ? "bg-green-100"
+                                        : sentiment === "NEGATIVE"
+                                        ? "bg-red-100"
+                                        : "bg-gray-100";
+
+                                    return (
+                                      <div
+                                        key={sentiment}
+                                        className={`px-4 py-2 rounded-lg ${bgColor}`}
+                                      >
+                                        <p className="text-sm font-medium">
+                                          {sentiment}
+                                        </p>
+                                        <p className="text-xl font-bold">
+                                          {percentage}%
+                                        </p>
+                                      </div>
+                                    );
+                                  }
+                                )}
+                              </div>
                             )}
                           </div>
-                        )}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="actionableInsights">
-                    <AccordionTrigger className="text-lg font-bold">
-                      Actionable Insights
-                    </AccordionTrigger>
-                    <AccordionContent className="text-base">
-                      {intel.actionableInsights?.map((insight, index) => (
-                        <div key={index}>
-                          <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100 mr-2 mb-2">
-                            <LightbulbIcon className="text-yellow-800 h-4 w-4" />
+                        </AccordionContent>
+                      </AccordionItem>
+                    )}
+                  {intel.actionableInsights &&
+                    intel.actionableInsights.length > 0 && (
+                      <AccordionItem value="actionableInsights">
+                        <AccordionTrigger className="text-lg font-bold">
+                          Actionable Insights
+                        </AccordionTrigger>
+                        <AccordionContent className="text-base">
+                          {intel.actionableInsights?.map((insight, index) => (
+                            <div key={index}>
+                              <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100 mr-2 mb-2">
+                                <LightbulbIcon className="text-yellow-800 h-4 w-4" />
+                              </div>
+                              {insight}
+                            </div>
+                          ))}
+                        </AccordionContent>
+                      </AccordionItem>
+                    )}
+
+                  {intel.keySections && intel.keySections.length > 0 && (
+                    <AccordionItem value="keySections">
+                      <AccordionTrigger className="text-lg font-bold">
+                        Key Sections
+                      </AccordionTrigger>
+                      <AccordionContent className="text-base">
+                        {intel.keySections?.map((section, index) => (
+                          <div
+                            key={index}
+                            className="mb-4 rounded-lg border p-3 bg-gray-50"
+                          >
+                            <div className="mb-2 flex items-center gap-2">
+                              <BookmarkIcon className="h-4 w-4" />
+                              <p className="text-sm font-medium">
+                                {Math.floor(
+                                  section.timestamp.start / 1000 / 60
+                                )}
+                                :
+                                {String(
+                                  Math.floor(
+                                    (section.timestamp.start / 1000) % 60
+                                  )
+                                ).padStart(2, "0")}{" "}
+                                -{" "}
+                                {Math.floor(section.timestamp.end / 1000 / 60)}:
+                                {String(
+                                  Math.floor(
+                                    (section.timestamp.end / 1000) % 60
+                                  )
+                                ).padStart(2, "0")}
+                              </p>
+                            </div>
+                            <p>{section.text}</p>
                           </div>
-                          {insight}
-                        </div>
-                      ))}
-                    </AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="keySections">
-                    <AccordionTrigger className="text-lg font-bold">
-                      Key Sections
-                    </AccordionTrigger>
-                    <AccordionContent className="text-base">
-                      {intel.keySections?.map((section, index) => (
-                        <div
-                          key={index}
-                          className="mb-4 rounded-lg border p-3 bg-gray-50"
-                        >
-                          <div className="mb-2 flex items-center gap-2">
-                            <BookmarkIcon className="h-4 w-4" />
-                            <p className="text-sm font-medium">
-                              {Math.floor(section.timestamp.start / 1000 / 60)}:
-                              {String(
-                                Math.floor(
-                                  (section.timestamp.start / 1000) % 60
-                                )
-                              ).padStart(2, "0")}{" "}
-                              - {Math.floor(section.timestamp.end / 1000 / 60)}:
-                              {String(
-                                Math.floor((section.timestamp.end / 1000) % 60)
-                              ).padStart(2, "0")}
-                            </p>
-                          </div>
-                          <p>{section.text}</p>
-                        </div>
-                      ))}
-                    </AccordionContent>
-                  </AccordionItem>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
                 </Accordion>
               </div>
             </TabsContent>
@@ -2310,66 +2409,45 @@ export default function AppPage() {
             </TabsContent>
             <TabsContent value="chat">
               <div className="bg-white rounded-lg p-4 shadow-sm border  w-full">
-                <div className="flex my-4 justify-end gap-4">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button>Translate</Button>
-                    </PopoverTrigger>
-                    <PopoverContent>
-                      <div className="flex flex-col gap-2">
-                        {supportedLanguages.map((language) => (
+                <div className="flex flex-col h-[600px]">
+                  <div className="flex-1 overflow-y-auto mb-4">
+                    <div className="space-y-4">
+                      {messages.map((message, index) => (
+                        <div
+                          key={index}
+                          className={`flex ${
+                            message.role === "user"
+                              ? "justify-end"
+                              : "justify-start"
+                          }`}
+                        >
                           <div
-                            className="px-4 py-2 rounded-lg hover:opacity-80 transition-opacity cursor-pointer"
-                            key={language.language}
-                            onClick={() => handleTranslate(language.language)}
+                            className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                              message.role === "user"
+                                ? "bg-blue-500 text-white"
+                                : "bg-gray-100"
+                            }`}
                           >
-                            {language.label}
+                            <p className="text-sm">{message.content}</p>
                           </div>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                {intel.transcriptUtterances?.map((utterance, index) => (
-                  <div key={index}>
-                    <div
-                      className={`mb-4 rounded-lg border p-3 ${
-                        utterance.speaker === "A"
-                          ? "bg-blue-50"
-                          : utterance.speaker === "B"
-                          ? "bg-green-50"
-                          : utterance.speaker === "C"
-                          ? "bg-yellow-50"
-                          : utterance.speaker === "D"
-                          ? "bg-purple-50"
-                          : utterance.speaker === "E"
-                          ? "bg-pink-50"
-                          : utterance.speaker === "F"
-                          ? "bg-orange-50"
-                          : "bg-gray-50"
-                      }`}
-                    >
-                      <div className="mb-2 flex items-center gap-2">
-                        <UsersIcon className="h-4 w-4" />
-                        <p className="text-sm font-medium">
-                          Speaker {utterance.speaker} (
-                          {Math.floor(utterance.start / 1000 / 60)}:
-                          {String(
-                            Math.floor((utterance.start / 1000) % 60)
-                          ).padStart(2, "0")}{" "}
-                          - {Math.floor(utterance.end / 1000 / 60)}:
-                          {String(
-                            Math.floor((utterance.end / 1000) % 60)
-                          ).padStart(2, "0")}
-                          )
-                        </p>
-                      </div>
-                      <p
-                        dangerouslySetInnerHTML={{ __html: utterance.text }}
-                      ></p>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Type your message..."
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleSendMessage();
+                        }
+                      }}
+                    />
+                    <Button onClick={handleSendMessage}>Send</Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

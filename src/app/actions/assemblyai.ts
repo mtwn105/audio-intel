@@ -40,29 +40,43 @@ export const generateIntel = async (fileUrl: string): Promise<Intel> => {
   }
 
 
-
-  let prompt = `Provide Actionable Insights from the transcript. Do not provide a preamble.
+  let actionableInsightsArray = [];
+  try {
+    const prompt = `Provide Actionable Insights from the transcript. Do not provide a preamble.
 
 Answer Format:
 [{"insight": "<insight>"}]`
 
-  // Step 3: Apply LeMUR.
-  const { response: actionableInsights } = await assemblyai.lemur.task({
-    transcript_ids: [transcript.id],
-    prompt,
-    final_model: 'anthropic/claude-3-5-sonnet'
-  })
+    // Step 3: Apply LeMUR.
+    const { response: actionableInsights } = await assemblyai.lemur.task({
+      transcript_ids: [transcript.id],
+      prompt,
+      final_model: 'anthropic/claude-3-5-sonnet'
+    })
 
-  const actionableInsightsArray = JSON.parse(actionableInsights).map((insight: { insight: string }) => insight.insight);
+    // extract part with [ { ... } ]
+    const jsonPart = actionableInsights.split("[")[1].split("]")[0];
+    actionableInsightsArray = JSON.parse(jsonPart).map((insight: { insight: string }) => insight.insight);
+  } catch (error) {
+    console.error(error);
+    actionableInsightsArray = [];
+  }
 
-  prompt = `Provide a title for the transcript. Do not provide a preamble.`
+  let title = "";
+  try {
+    const prompt = `Provide a title for the transcript. Do not provide a preamble.`
 
-  // Step 3: Apply LeMUR.
-  const { response: title } = await assemblyai.lemur.task({
-    transcript_ids: [transcript.id],
-    prompt,
-    final_model: 'anthropic/claude-3-5-sonnet'
-  })
+    // Step 3: Apply LeMUR.
+    const { response: titleResponse } = await assemblyai.lemur.task({
+      transcript_ids: [transcript.id],
+      prompt,
+      final_model: 'anthropic/claude-3-5-sonnet'
+    })
+    title = titleResponse;
+  } catch (error) {
+    console.error(error);
+    title = "";
+  }
 
 
   console.log("Transcript generated successfully.");
