@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Play, Pause } from "lucide-react";
 import { useAudioWaveform } from "@/hooks/useWafeform";
 import { Waveform } from "@/components/waveform";
 
-export default function AudioPlayer({ audioUrl }: { audioUrl: string }) {
+const AudioPlayer = memo(function AudioPlayer({
+  audioUrl,
+}: {
+  audioUrl: string;
+}) {
   const { waveform, duration } = useAudioWaveform(audioUrl);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -55,4 +59,6 @@ export default function AudioPlayer({ audioUrl }: { audioUrl: string }) {
       <audio ref={audioRef} src={audioUrl} />
     </div>
   );
-}
+});
+
+export default AudioPlayer;

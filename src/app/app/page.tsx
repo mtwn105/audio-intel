@@ -22,6 +22,7 @@ import {
   MessageSquareIcon,
   Mic2Icon,
   PlayCircleIcon,
+  SearchIcon,
   StopCircleIcon,
   TableOfContentsIcon,
   TrashIcon,
@@ -40,6 +41,9 @@ import { Input } from "@/components/ui/input";
 import { youtubeToMp3 } from "../actions/youtube";
 import { chat, Message } from "@/app/actions/chat";
 import AudioPlayer from "@/components/audio-player";
+import ConversationTimeline from "@/components/conversation-timeline";
+import { speakerColorsLight } from "@/lib/utils";
+import { TranscriptUtterance } from "assemblyai";
 export default function AppPage() {
   const [mode, setMode] = useState<"file" | "audio" | "youtube">("file");
   const [fileData, setFileData] = useState<ClientUploadedFileData<{
@@ -59,6 +63,11 @@ export default function AppPage() {
     null
   );
   const [hasPermission, setHasPermission] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchedTranscript, setSearchedTranscript] = useState<
+    TranscriptUtterance[]
+  >([]);
 
   const supportedLanguages = [
     {
@@ -1958,6 +1967,7 @@ export default function AppPage() {
     try {
       setIsLoading(true);
       setIntel(null);
+      setSearchedTranscript([]);
       console.log("Generating mp3 from youtube");
       const { url } = await youtubeToMp3(youtubeUrl);
       console.log("Mp3", url);
@@ -1966,6 +1976,7 @@ export default function AppPage() {
       const intel = await generateIntel(url);
       setIntel(intel);
       console.log("Intel", intel);
+      setSearchedTranscript(intel!.transcriptUtterances!);
       setIntel(intel as Intel);
       setOverallSentiment(
         intel.sentimentResults
@@ -1991,7 +2002,7 @@ export default function AppPage() {
     try {
       setIsLoading(true);
       setIntel(null);
-
+      setSearchedTranscript([]);
       console.log("Generating intel from record");
 
       const fileUrl = await uploadAudio(files[0]);
@@ -2001,6 +2012,7 @@ export default function AppPage() {
       if (fileUrl) {
         const intel = await generateIntel(fileUrl);
         setIntel(intel as Intel);
+        setSearchedTranscript(intel!.transcriptUtterances!);
         setOverallSentiment(
           intel.sentimentResults
             ? intel.sentimentResults.filter((r) => r.sentiment === "POSITIVE")
@@ -2030,6 +2042,7 @@ export default function AppPage() {
       ...intel!,
       transcriptUtterances: translatedTranscript,
     });
+    setSearchedTranscript(intel!.transcriptUtterances!);
   };
 
   const handleSendMessage = async () => {
@@ -2059,6 +2072,18 @@ export default function AppPage() {
     } catch (error) {
       console.error(error);
       toast.error("Error sending message");
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    const results = intel!.transcriptUtterances!.filter((u) =>
+      u.text.toLowerCase().includes(query.toLowerCase())
+    );
+    if (results.length === 0) {
+      setSearchedTranscript(intel!.transcriptUtterances!);
+    } else {
+      setSearchedTranscript(results);
     }
   };
 
@@ -2541,7 +2566,16 @@ export default function AppPage() {
             </TabsContent>
             <TabsContent value="transcript">
               <div className="bg-white rounded-lg p-4 shadow-sm border  w-full">
-                <div className="flex my-4 justify-end gap-4">
+                <div className="flex my-4 justify-between gap-4">
+                  <div className="relative flex-1">
+                    <Input
+                      type="search"
+                      placeholder="Search transcript..."
+                      className="w-full"
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                    />
+                  </div>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button>Translate</Button>
@@ -2561,50 +2595,62 @@ export default function AppPage() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                {intel.transcriptUtterances?.map((utterance, index) => (
-                  <div key={index}>
-                    <div
-                      className={`mb-4 rounded-lg border p-3 ${
-                        utterance.speaker === "A"
-                          ? "bg-blue-50"
-                          : utterance.speaker === "B"
-                          ? "bg-green-50"
-                          : utterance.speaker === "C"
-                          ? "bg-yellow-50"
-                          : utterance.speaker === "D"
-                          ? "bg-purple-50"
-                          : utterance.speaker === "E"
-                          ? "bg-pink-50"
-                          : utterance.speaker === "F"
-                          ? "bg-orange-50"
-                          : "bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="mb-2 flex items-center gap-2">
-                          <UsersIcon className="h-4 w-4" />
-                          <p className="text-sm font-bold">
-                            Speaker {utterance.speaker}
+                <ConversationTimeline
+                  transcriptUtterances={intel.transcriptUtterances || []}
+                />
+                <div className="mt-4">
+                  {searchedTranscript.map((utterance, index) => (
+                    <div key={index}>
+                      <div
+                        className={`mb-4 rounded-lg border p-3 ${
+                          utterance.speaker === "A"
+                            ? speakerColorsLight[0]
+                            : utterance.speaker === "B"
+                            ? speakerColorsLight[1]
+                            : utterance.speaker === "C"
+                            ? speakerColorsLight[2]
+                            : utterance.speaker === "D"
+                            ? speakerColorsLight[3]
+                            : utterance.speaker === "E"
+                            ? speakerColorsLight[4]
+                            : utterance.speaker === "F"
+                            ? speakerColorsLight[5]
+                            : speakerColorsLight[6]
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="mb-2 flex items-center gap-2">
+                            <UsersIcon className="h-4 w-4" />
+                            <p className="text-sm font-bold">
+                              Speaker {utterance.speaker}
+                            </p>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            ({Math.floor(utterance.start / 1000 / 60)}:
+                            {String(
+                              Math.floor((utterance.start / 1000) % 60)
+                            ).padStart(2, "0")}{" "}
+                            - {Math.floor(utterance.end / 1000 / 60)}:
+                            {String(
+                              Math.floor((utterance.end / 1000) % 60)
+                            ).padStart(2, "0")}
+                            )
                           </p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          ({Math.floor(utterance.start / 1000 / 60)}:
-                          {String(
-                            Math.floor((utterance.start / 1000) % 60)
-                          ).padStart(2, "0")}{" "}
-                          - {Math.floor(utterance.end / 1000 / 60)}:
-                          {String(
-                            Math.floor((utterance.end / 1000) % 60)
-                          ).padStart(2, "0")}
-                          )
-                        </p>
+                        <p
+                          dangerouslySetInnerHTML={{
+                            __html: searchQuery
+                              ? utterance.text.replace(
+                                  new RegExp(searchQuery, "gi"),
+                                  (match) => `<mark>${match}</mark>`
+                                )
+                              : utterance.text,
+                          }}
+                        ></p>
                       </div>
-                      <p
-                        dangerouslySetInnerHTML={{ __html: utterance.text }}
-                      ></p>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </TabsContent>
             <TabsContent value="chat">
