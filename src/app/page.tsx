@@ -12,7 +12,6 @@ import {
   Users,
   Clock,
   BookOpen,
-  Copy,
   ArrowRight,
   Smile,
   Lightbulb,

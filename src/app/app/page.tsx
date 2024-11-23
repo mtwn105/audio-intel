@@ -25,7 +25,6 @@ import {
   Mic2Icon,
   PenSquareIcon,
   PlayCircleIcon,
-  SearchIcon,
   StopCircleIcon,
   TableOfContentsIcon,
   TrashIcon,
