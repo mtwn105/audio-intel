@@ -83,6 +83,27 @@ Answer Format:
     title = "";
   }
 
+  let blogPost = "";
+
+  try {
+    const prompt = `Generate a blog post from the transcript in markdown format. Do not provide a preamble.`
+
+    // Step 3: Apply LeMUR.
+    const { response: blogPostResponse } = await assemblyai.lemur.task({
+      transcript_ids: [transcript.id],
+      prompt,
+      final_model: 'anthropic/claude-3-5-sonnet'
+    })
+
+    console.log("Blog Post: ", blogPostResponse);
+
+    blogPost = blogPostResponse;
+
+  } catch (error) {
+    console.error(error);
+    blogPost = "";
+  }
+
 
   console.log("Transcript generated successfully.");
 
@@ -96,6 +117,7 @@ Answer Format:
     actionableInsights: actionableInsightsArray,
     title: title,
     keySections: keySections,
+    blogPost: blogPost,
   };
 };
 

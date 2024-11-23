@@ -18,6 +18,7 @@ export type Intel = {
   actionableInsights: string[] | null;
   title: string;
   keySections: KeySection[] | null;
+  blogPost: string;
 };
 
 

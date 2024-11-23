@@ -18,9 +18,12 @@ import {
   BotMessageSquareIcon,
   CaptionsIcon,
   ClockIcon,
+  CopyIcon,
+  FileTextIcon,
   LightbulbIcon,
   MessageSquareIcon,
   Mic2Icon,
+  PenSquareIcon,
   PlayCircleIcon,
   SearchIcon,
   StopCircleIcon,
@@ -44,6 +47,7 @@ import AudioPlayer from "@/components/audio-player";
 import ConversationTimeline from "@/components/conversation-timeline";
 import { speakerColorsLight } from "@/lib/utils";
 import { TranscriptUtterance } from "assemblyai";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 export default function AppPage() {
   const [mode, setMode] = useState<"file" | "audio" | "youtube">("file");
   const [fileData, setFileData] = useState<ClientUploadedFileData<{
@@ -2274,6 +2278,14 @@ export default function AppPage() {
                     disabled={isLoading}
                     onClick={handleGenerateIntelFromRecord}
                   >
+                    <FileTextIcon className="h-4 w-4 mr-2" />
+                    {isLoading ? "Generating..." : "Generate Intel"}
+                  </Button>
+                  <Button
+                    disabled={isLoading}
+                    onClick={handleGenerateIntelFromRecord}
+                  >
+                    <FileTextIcon className="h-4 w-4 mr-2" />
                     {isLoading ? "Generating..." : "Generate Intel"}
                   </Button>
                 </div>
@@ -2315,8 +2327,9 @@ export default function AppPage() {
         </div>
       )}
       {fileData && (
-        <div className="mt-4">
+        <div className="flex gap-2 mt-4">
           <Button onClick={handleGenerateIntel} disabled={isLoading}>
+            <FileTextIcon className="h-4 w-4 mr-2" />
             {isLoading ? "Generating..." : "Generate Intel"}
           </Button>
         </div>
@@ -2402,6 +2415,10 @@ export default function AppPage() {
               <TabsTrigger value="chat" className="w-full">
                 <BotMessageSquareIcon className="h-4 w-4 mr-2" />
                 Chat
+              </TabsTrigger>
+              <TabsTrigger value="blog" className="w-full">
+                <PenSquareIcon className="h-4 w-4 mr-2" />
+                Blog Post
               </TabsTrigger>
             </TabsList>
             <TabsContent value="overview">
@@ -2694,6 +2711,23 @@ export default function AppPage() {
                     <Button onClick={handleSendMessage}>Send</Button>
                   </div>
                 </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="blog">
+              <div className="bg-white rounded-lg p-4 shadow-sm border  w-full">
+                <div className="flex justify-end mb-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(intel.blogPost);
+                    }}
+                  >
+                    <span className="mr-2">Copy</span>
+                    <CopyIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                <MarkdownRenderer content={intel.blogPost} />
               </div>
             </TabsContent>
           </Tabs>
