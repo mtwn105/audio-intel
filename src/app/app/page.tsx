@@ -2283,13 +2283,6 @@ export default function AppPage() {
                     <FileTextIcon className="h-4 w-4 mr-2" />
                     {isLoading ? "Generating..." : "Generate Intel"}
                   </Button>
-                  <Button
-                    disabled={isLoading}
-                    onClick={handleGenerateIntelFromRecord}
-                  >
-                    <FileTextIcon className="h-4 w-4 mr-2" />
-                    {isLoading ? "Generating..." : "Generate Intel"}
-                  </Button>
                 </div>
               )}
             </div>
