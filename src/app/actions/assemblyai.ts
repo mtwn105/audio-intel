@@ -69,7 +69,7 @@ Answer Format:
 
   let title = "";
   try {
-    const prompt = `Provide a title for the transcript. Do not provide a preamble.`
+    const prompt = `Provide a title for the transcript with some emojis. Do not provide a preamble.`
 
     // Step 3: Apply LeMUR.
     const { response: titleResponse } = await assemblyai.lemur.task({

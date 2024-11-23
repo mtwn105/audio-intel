@@ -15,12 +15,16 @@ import {
 } from "@/components/ui/accordion";
 import {
   BookmarkIcon,
+  BotMessageSquareIcon,
+  CaptionsIcon,
   ClockIcon,
   LightbulbIcon,
   MessageSquareIcon,
   Mic2Icon,
   PlayCircleIcon,
   StopCircleIcon,
+  TableOfContentsIcon,
+  TrashIcon,
   UsersIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -35,6 +39,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { youtubeToMp3 } from "../actions/youtube";
 import { chat, Message } from "@/app/actions/chat";
+import AudioPlayer from "@/components/audio-player";
 export default function AppPage() {
   const [mode, setMode] = useState<"file" | "audio" | "youtube">("file");
   const [fileData, setFileData] = useState<ClientUploadedFileData<{
@@ -2065,35 +2070,35 @@ export default function AppPage() {
         insights.
       </p>
       {fileData ? (
-        <div className="flex justify-between items-center mt-4">
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium">File: {fileData.name}</p>
-            <p className="text-sm text-muted-foreground">
-              Size: {(fileData.size / (1024 * 1024)).toFixed(2)} MB
-            </p>
-            <div className="flex flex-col gap-2">
-              <div className="w-full h-12 bg-gray-100 rounded-lg overflow-hidden">
-                <audio
+        <div className="flex flex-col gap-2 mt-4 border rounded-lg p-4">
+          <p className="text-sm font-medium">File: {fileData.name}</p>
+          <p className="text-sm text-muted-foreground">
+            Size: {(fileData.size / (1024 * 1024)).toFixed(2)} MB
+          </p>
+          <div className="flex justify-between items-center gap-2">
+            <div className="w-full h-24  rounded-lg overflow-hidden">
+              {/* <audio
                   id="audioPlayer"
                   src={fileData.url}
                   controls
                   className="w-full"
-                />
-              </div>
+                /> */}
+              <AudioPlayer audioUrl={fileData.url} />
             </div>
+            <Button
+              disabled={isLoading}
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                setFileData(null);
+                setFiles([]);
+                setIntel(null);
+              }}
+            >
+              <TrashIcon className="h-4 w-4" />
+              Remove
+            </Button>
           </div>
-          <Button
-            disabled={isLoading}
-            size="sm"
-            variant="destructive"
-            onClick={() => {
-              setFileData(null);
-              setFiles([]);
-              setIntel(null);
-            }}
-          >
-            Remove
-          </Button>
         </div>
       ) : (
         <div className="flex flex-col gap-2 mt-4">
@@ -2231,13 +2236,8 @@ export default function AppPage() {
 
                 {files.length > 0 && (
                   <div className="mt-2">
-                    <div className="w h-12 flex justify-center  rounded-lg overflow-hidden">
-                      <audio
-                        id="audioPlayer"
-                        src={URL.createObjectURL(files[0])}
-                        controls
-                        className="bg-gray-100"
-                      />
+                    <div className="w-full h-24  justify-center  rounded-lg overflow-hidden">
+                      <AudioPlayer audioUrl={URL.createObjectURL(files[0])} />
                     </div>
                   </div>
                 )}
@@ -2319,7 +2319,9 @@ export default function AppPage() {
             <div className="flex w-full items-center gap-2 rounded-lg border p-3">
               <UsersIcon className="h-4 w-4" />
               <div>
-                <p className="text-xs md:text-sm font-medium">Speakers</p>
+                <p className="text-xs md:text-sm text-muted-foreground font-medium">
+                  Speakers
+                </p>
                 <p className="text-lg md:text-2xl font-bold">
                   {intel.transcriptUtterances
                     ? new Set(intel.transcriptUtterances.map((u) => u.speaker))
@@ -2332,7 +2334,9 @@ export default function AppPage() {
             <div className="flex w-full items-center gap-2 rounded-lg border p-3">
               <ClockIcon className="h-4 w-4" />
               <div>
-                <p className="text-xs md:text-sm font-medium">Duration</p>
+                <p className="text-xs md:text-sm text-muted-foreground font-medium">
+                  Duration
+                </p>
                 <p className="text-lg md:text-2xl font-bold">
                   {intel.transcriptUtterances
                     ? Math.round(
@@ -2349,7 +2353,7 @@ export default function AppPage() {
             <div className="flex w-full items-center gap-2 rounded-lg border p-3">
               <MessageSquareIcon className="h-4 w-4" />
               <div>
-                <p className="text-xs md:text-sm font-medium">
+                <p className="text-xs md:text-sm text-muted-foreground font-medium">
                   Overall Sentiment
                 </p>
                 <p className="text-lg md:text-2xl font-bold">
@@ -2363,15 +2367,15 @@ export default function AppPage() {
           <Tabs defaultValue="overview" className="w-full mt-4">
             <TabsList className="mb-4 w-full">
               <TabsTrigger value="overview" className="w-full">
-                <LightbulbIcon className="h-4 w-4 mr-2" />
+                <TableOfContentsIcon className="h-4 w-4 mr-2" />
                 Overview
               </TabsTrigger>
               <TabsTrigger value="transcript" className="w-full">
-                <BookmarkIcon className="h-4 w-4 mr-2" />
+                <CaptionsIcon className="h-4 w-4 mr-2" />
                 Transcript
               </TabsTrigger>
               <TabsTrigger value="chat" className="w-full">
-                <MessageSquareIcon className="h-4 w-4 mr-2" />
+                <BotMessageSquareIcon className="h-4 w-4 mr-2" />
                 Chat
               </TabsTrigger>
             </TabsList>
@@ -2576,11 +2580,15 @@ export default function AppPage() {
                           : "bg-gray-50"
                       }`}
                     >
-                      <div className="mb-2 flex items-center gap-2">
-                        <UsersIcon className="h-4 w-4" />
-                        <p className="text-sm font-medium">
-                          Speaker {utterance.speaker} (
-                          {Math.floor(utterance.start / 1000 / 60)}:
+                      <div className="flex justify-between items-center">
+                        <div className="mb-2 flex items-center gap-2">
+                          <UsersIcon className="h-4 w-4" />
+                          <p className="text-sm font-bold">
+                            Speaker {utterance.speaker}
+                          </p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          ({Math.floor(utterance.start / 1000 / 60)}:
                           {String(
                             Math.floor((utterance.start / 1000) % 60)
                           ).padStart(2, "0")}{" "}
