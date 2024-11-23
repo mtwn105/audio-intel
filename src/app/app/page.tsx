@@ -48,6 +48,9 @@ import ConversationTimeline from "@/components/conversation-timeline";
 import { speakerColorsLight } from "@/lib/utils";
 import { TranscriptUtterance } from "assemblyai";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+
+export const maxDuration = 60;
+
 export default function AppPage() {
   const [mode, setMode] = useState<"file" | "audio" | "youtube">("file");
   const [fileData, setFileData] = useState<ClientUploadedFileData<{

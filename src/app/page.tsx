@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   FileAudio,
@@ -12,11 +14,15 @@ import {
   BookOpen,
   Copy,
   ArrowRight,
+  Smile,
+  Lightbulb,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FeatureCard } from "@/components/feature-card";
+import { useRouter } from "next/navigation";
 
 function App() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       {/* Hero Section */}
@@ -33,10 +39,21 @@ function App() {
           Powered by AssemblyAI
         </p>
         <div className="flex gap-4 justify-center mb-16">
-          <Button className="gap-2">
+          <Button onClick={() => router.push("/app")} className="gap-2">
             Try Now <ArrowRight size={20} />
           </Button>
-          <Button variant="secondary">Watch Demo</Button>
+          <Button
+            onClick={() =>
+              window.open(
+                "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                "_blank"
+              )
+            }
+            variant="secondary"
+            className="gap-2"
+          >
+            Watch Demo <ArrowRight size={20} />
+          </Button>
         </div>
 
         {/* Input Methods */}
@@ -83,10 +100,22 @@ function App() {
               title="Interactive Chat"
               description="Chat with your transcript to find specific information quickly"
             />
+
+            <FeatureCard
+              icon={<Lightbulb />}
+              title="Actionable Insights"
+              description="Get actionable insights from your audio content"
+            />
             <FeatureCard
               icon={<Search />}
               title="Advanced Search"
               description="Search through transcripts to find exactly what you need"
+            />
+
+            <FeatureCard
+              icon={<Smile />}
+              title="Sentiment Analysis"
+              description="Analyze the sentiment of your audio content"
             />
             <FeatureCard
               icon={<Languages />}
@@ -107,11 +136,6 @@ function App() {
               icon={<BookOpen />}
               title="Blog Generation"
               description="Automatically generate blog posts from your audio content"
-            />
-            <FeatureCard
-              icon={<Copy />}
-              title="Easy Export"
-              description="Copy and export content in multiple formats"
             />
           </div>
         </div>
