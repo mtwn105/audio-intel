@@ -7,6 +7,7 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
 import { Toaster } from "@/components/ui/sonner";
+import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "AudioIntel",
@@ -32,6 +33,7 @@ export default function RootLayout({
         />
         <Navbar />
         {children}
+        <Footer />
         <Toaster richColors position="bottom-center" />
       </body>
     </html>

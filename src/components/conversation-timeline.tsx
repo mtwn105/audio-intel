@@ -38,6 +38,8 @@ export default function ConversationTimeline({
       new Set(transcriptUtterances.map((u) => u.speaker))
     );
 
+    console.log({ duration, normalized, speakers });
+
     return { duration, normalized, speakers };
   }, [transcriptUtterances]);
 

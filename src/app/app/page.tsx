@@ -2674,28 +2674,38 @@ export default function AppPage() {
               <div className="bg-white rounded-lg p-4 shadow-sm border  w-full">
                 <div className="flex flex-col h-[600px]">
                   <div className="flex-1 overflow-y-auto mb-4">
-                    <div className="space-y-4">
-                      {messages.map((message, index) => (
-                        <div
-                          key={index}
-                          className={`flex ${
-                            message.role === "user"
-                              ? "justify-end"
-                              : "justify-start"
-                          }`}
-                        >
+                    {messages.length > 0 && (
+                      <div className="space-y-4">
+                        {messages.map((message, index) => (
                           <div
-                            className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                            key={index}
+                            className={`flex ${
                               message.role === "user"
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-100"
+                                ? "justify-end"
+                                : "justify-start"
                             }`}
                           >
-                            <p className="text-sm">{message.content}</p>
+                            <div
+                              className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                                message.role === "user"
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-gray-100"
+                              }`}
+                            >
+                              <p className="text-sm">{message.content}</p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
+                    {messages.length === 0 && (
+                      <div className="flex justify-center items-center h-full">
+                        <p className="text-sm text-muted-foreground">
+                          Start a conversation by asking questions about the
+                          audio.
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <Input
