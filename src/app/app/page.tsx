@@ -90,7 +90,7 @@ export default function AppPage() {
             ).toFixed(0) + " min",
           speakerCount: intel.transcriptUtterances
             ? new Set(
-                intel.transcriptUtterances!.map((u) => u.speaker)
+                intel.transcriptUtterances.map((u) => u.speaker)
               ).size.toString()
             : "0",
           userId: session?.user.id!,
@@ -166,7 +166,7 @@ export default function AppPage() {
           ).toFixed(0) + " min",
         speakerCount: intel.transcriptUtterances
           ? new Set(
-              intel.transcriptUtterances!.map((u) => u.speaker)
+              intel.transcriptUtterances.map((u) => u.speaker)
             ).size.toString()
           : "0",
         userId: session?.user.id!,
@@ -234,7 +234,7 @@ export default function AppPage() {
             ).toFixed(0) + " min",
           speakerCount: intel.transcriptUtterances
             ? new Set(
-                intel.transcriptUtterances!.map((u) => u.speaker)
+                intel.transcriptUtterances.map((u) => u.speaker)
               ).size.toString()
             : "0",
           userId: session?.user.id!,
