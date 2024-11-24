@@ -2,6 +2,8 @@
 
 Transform audio into actionable intelligence with our powerful AI platform. AudioIntel helps you extract valuable insights from audio content through transcription, analysis, and AI-powered features.
 
+## [Live Demo](https://audiointel.amitwani.dev)
+
 ## ✨ Features
 
 - 🎵 **Multiple Input Methods**
