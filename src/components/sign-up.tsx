@@ -95,16 +95,18 @@ export function SignUp() {
             <Input
               id="password"
               value={password}
+              type="password"
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
               placeholder="Password"
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Confirm Password</Label>
+            <Label htmlFor="password_confirmation">Confirm Password</Label>
             <Input
               id="password_confirmation"
               value={passwordConfirmation}
+              type="password"
               onChange={(e) => setPasswordConfirmation(e.target.value)}
               autoComplete="new-password"
               placeholder="Confirm Password"
@@ -148,12 +150,17 @@ export function SignUp() {
             className="w-full"
             disabled={loading}
             onClick={async () => {
+              if (password !== passwordConfirmation) {
+                toast.error("Passwords do not match");
+                return;
+              }
+
               await signUp.email({
                 email,
                 password,
                 name: `${firstName} ${lastName}`,
                 image: image ? await convertImageToBase64(image) : "",
-                callbackURL: "/dashboard",
+                callbackURL: "/app",
                 fetchOptions: {
                   onResponse: () => {
                     setLoading(false);
@@ -165,7 +172,8 @@ export function SignUp() {
                     toast.error(ctx.error.message);
                   },
                   onSuccess: async () => {
-                    router.push("/dashboard");
+                    router.push("/app");
+                    toast.success("Account created successfully");
                   },
                 },
               });
@@ -179,13 +187,6 @@ export function SignUp() {
           </Button>
         </div>
       </CardContent>
-      <CardFooter>
-        <div className="flex justify-center w-full border-t py-4">
-          <p className="text-center text-xs text-neutral-500">
-            Secured by <span className="text-orange-400">better-auth.</span>
-          </p>
-        </div>
-      </CardFooter>
     </Card>
   );
 }

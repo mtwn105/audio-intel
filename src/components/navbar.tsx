@@ -1,7 +1,10 @@
+"use client";
+
 import { Brain, Menu } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
   SheetContent,
@@ -11,7 +14,17 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { signOut, useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 const Navbar1 = () => {
+  const {
+    data,
+    isPending, //loading state
+    error, //error object
+  } = useSession();
+
+  const router = useRouter();
+
   return (
     <>
       <nav className="hidden p-4 justify-between md:flex">
@@ -33,12 +46,40 @@ const Navbar1 = () => {
             >
               Home
             </Link>
+            {!isPending && data?.user && (
+              <Link
+                className={cn(
+                  "text-muted-foreground",
+                  navigationMenuTriggerStyle,
+                  buttonVariants({
+                    variant: "ghost",
+                  })
+                )}
+                href="/intels"
+              >
+                Intels
+              </Link>
+            )}
           </div>
         </div>
-        <div className="flex gap-2">
-          {/* <Button variant={"outline"}>Log in</Button>
-          <Button>Sign up</Button> */}
-        </div>
+        {!isPending && (
+          <div className="flex gap-2 items-center">
+            {data?.user ? (
+              <>
+                <Avatar>
+                  <AvatarImage src={data.user.image || ""} />
+                  <AvatarFallback>{data.user.name[0]}</AvatarFallback>
+                </Avatar>
+                <p className="text-sm font-semibold">{data.user.name}</p>
+                <Button variant={"destructive"} onClick={() => signOut()}>
+                  Log out
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => router.push("/sign-in")}>Sign in</Button>
+            )}
+          </div>
+        )}
       </nav>
       <div className="block p-4 md:hidden">
         <div className="flex items-center justify-between">
@@ -67,10 +108,31 @@ const Navbar1 = () => {
                 </Link>
               </div>
               <div className="border-t pt-4">
-                {/* <div className="mt-2 flex flex-col gap-3">
-                  <Button variant={"outline"}>Log in</Button>
-                  <Button>Sign up</Button>
-                </div> */}
+                {!isPending && (
+                  <div className="flex gap-2 items-center">
+                    {data?.user ? (
+                      <>
+                        <Avatar>
+                          <AvatarImage src={data.user.image || ""} />
+                          <AvatarFallback>{data.user.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <p className="text-sm font-semibold">
+                          {data.user.name}
+                        </p>
+                        <Button
+                          variant={"destructive"}
+                          onClick={() => signOut()}
+                        >
+                          Log out
+                        </Button>
+                      </>
+                    ) : (
+                      <Button onClick={() => router.push("/sign-in")}>
+                        Sign in
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </SheetContent>
           </Sheet>
