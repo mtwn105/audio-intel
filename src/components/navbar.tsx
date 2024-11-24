@@ -17,11 +17,7 @@ import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter, usePathname } from "next/navigation";
 const Navbar1 = () => {
-  const {
-    data,
-    isPending, //loading state
-    error, //error object
-  } = useSession();
+  const { data, isPending } = useSession();
 
   const router = useRouter();
   const pathname = usePathname();

@@ -1,4 +1,6 @@
-const metadata = {
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Audio Intel | Turn your audio into insights",
   description: "Turn your audio into insights",
 };

@@ -4,7 +4,6 @@ import {
   PenSquareIcon,
   TableOfContentsIcon,
   BotMessageSquareIcon,
-  Loader2,
 } from "lucide-react";
 import TopOverview from "@/components/top-overview";
 import Overview from "@/components/overview";

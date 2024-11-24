@@ -35,7 +35,7 @@ import Blog from "@/components/blog";
 export const maxDuration = 60;
 
 export default function AppPage() {
-  const { data: session, isPending, error } = useSession();
+  const { data: session } = useSession();
 
   const [mode, setMode] = useState<"file" | "audio" | "youtube">("file");
   const [fileData, setFileData] = useState<ClientUploadedFileData<{
@@ -88,9 +88,11 @@ export default function AppPage() {
                 intel.transcriptUtterances!.length - 1
               ].end / 60000
             ).toFixed(0) + " min",
-          speakerCount: new Set(
-            intel.transcriptUtterances!.map((u) => u.speaker)
-          ).size.toString(),
+          speakerCount: intel.transcriptUtterances
+            ? new Set(
+                intel.transcriptUtterances!.map((u) => u.speaker)
+              ).size.toString()
+            : "0",
           userId: session?.user.id!,
           transcriptId: intel.id,
           transcriptUtterances: intel.transcriptUtterances,
@@ -162,9 +164,11 @@ export default function AppPage() {
             intel.transcriptUtterances![intel.transcriptUtterances!.length - 1]
               .end / 60000
           ).toFixed(0) + " min",
-        speakerCount: new Set(
-          intel.transcriptUtterances!.map((u) => u.speaker)
-        ).size.toString(),
+        speakerCount: intel.transcriptUtterances
+          ? new Set(
+              intel.transcriptUtterances!.map((u) => u.speaker)
+            ).size.toString()
+          : "0",
         userId: session?.user.id!,
         transcriptId: intel.id,
         transcriptUtterances: intel.transcriptUtterances,
@@ -228,9 +232,11 @@ export default function AppPage() {
                 intel.transcriptUtterances!.length - 1
               ].end / 60000
             ).toFixed(0) + " min",
-          speakerCount: new Set(
-            intel.transcriptUtterances!.map((u) => u.speaker)
-          ).size.toString(),
+          speakerCount: intel.transcriptUtterances
+            ? new Set(
+                intel.transcriptUtterances!.map((u) => u.speaker)
+              ).size.toString()
+            : "0",
           userId: session?.user.id!,
           transcriptId: intel.id,
           transcriptUtterances: intel.transcriptUtterances,
