@@ -19,9 +19,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { FeatureCard } from "@/components/feature-card";
 import { useRouter } from "next/navigation";
-
+import { useOpenPanel } from "@openpanel/nextjs";
 function App() {
   const router = useRouter();
+  const op = useOpenPanel();
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       {/* Hero Section */}
@@ -38,16 +39,20 @@ function App() {
           Powered by AssemblyAI
         </p>
         <div className="flex gap-4 justify-center mb-16">
-          <Button onClick={() => router.push("/app")} className="gap-2">
+          <Button
+            onClick={() => {
+              router.push("/app");
+              op.track("try_now");
+            }}
+            className="gap-2"
+          >
             Try Now <ArrowRight size={20} />
           </Button>
           <Button
-            onClick={() =>
-              window.open(
-                "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                "_blank"
-              )
-            }
+            onClick={() => {
+              op.track("watch_demo");
+              window.open("https://youtu.be/P4ghVEwGDB4", "_blank");
+            }}
             variant="secondary"
             className="gap-2"
           >
