@@ -157,7 +157,30 @@ Made with ❤️ by [Amit Wani](https://x.com/mtwn105)
 
 ## 📱 Screenshots
 
-[Add screenshots of your application here]
+### Multiple Sources - Audio file, Record file & YouTube
+![audioFile](https://github.com/user-attachments/assets/344fa7e9-e8e6-4e25-a2e7-11c679fec424)
+![recordAudio](https://github.com/user-attachments/assets/e0eece14-0d9c-4d1b-aa99-319c1f2a42e7)
+![youtube](https://github.com/user-attachments/assets/a7880a4e-0921-4c8b-ab9d-929ac88eaac1)
+
+### Overview
+![overview](https://github.com/user-attachments/assets/edc25e89-1ce0-4bb9-8da6-ac459efa966e)
+
+### Summary
+
+![summary](https://github.com/user-attachments/assets/1cccdce4-dd43-4211-b999-fe5be8e6144e)
+
+### Transcript
+![transcript](https://github.com/user-attachments/assets/fc3818e5-3711-490c-828a-1fac855523f9)
+
+### Chat
+![chat](https://github.com/user-attachments/assets/01a1c14c-9f54-4320-bd8b-3d2e59d43c5a)
+
+### Blog
+![blog](https://github.com/user-attachments/assets/59fc4eee-7396-41b1-8c9d-12d1f1d9944d)
+
+### History
+![history](https://github.com/user-attachments/assets/4f512d1a-39f1-41c5-911f-8b6ee0ff1432)
+
 
 ## 🔗 Links
 
