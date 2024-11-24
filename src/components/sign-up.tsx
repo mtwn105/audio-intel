@@ -164,7 +164,7 @@ export function SignUp() {
                 password,
                 name: `${firstName} ${lastName}`,
                 image: image ? await convertImageToBase64(image) : "",
-                callbackURL: "/app",
+                callbackURL: "/intels",
                 fetchOptions: {
                   onResponse: () => {
                     setLoading(false);

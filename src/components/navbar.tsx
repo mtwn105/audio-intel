@@ -95,6 +95,7 @@ const Navbar1 = () => {
                   onClick={() => {
                     op.track("logout_click");
                     signOut();
+                    router.push("/sign-in");
                   }}
                 >
                   Log out
