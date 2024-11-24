@@ -14,9 +14,9 @@ import { getIntel } from "@/queries/intel-queries";
 export default async function IntelPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
   const intel = await getIntel(id);
 
   if (!intel) {
