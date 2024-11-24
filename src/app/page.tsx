@@ -28,13 +28,13 @@ function App() {
       <header className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-5xl font-bold text-slate-900 mb-6">
           Transform Audio into
-          <span className="text-blue-600"> Actionable Intelligence</span>
+          <span className="text-primary"> Actionable Intelligence</span>
         </h1>
         <p className="text-xl text-slate-600  max-w-2xl mx-auto">
           Upload audio, record directly, or analyze YouTube videos. Get instant
           transcripts, insights, and more with our powerful AI platform.
         </p>
-        <p className="text-lg max-w-2xl text-blue-600 mt-4 font-bold italic mx-auto mb-12">
+        <p className="text-lg max-w-2xl text-primary mt-4 font-bold italic mx-auto mb-12">
           Powered by AssemblyAI
         </p>
         <div className="flex gap-4 justify-center mb-16">
@@ -58,21 +58,21 @@ function App() {
         {/* Input Methods */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <FileAudio className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+            <FileAudio className="w-12 h-12 text-primary mx-auto mb-4" />
             <h3 className="font-semibold mb-2">Audio File</h3>
             <p className="text-slate-600 text-sm">
               Upload MP3, WAV, or other audio formats
             </p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <Mic className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+            <Mic className="w-12 h-12 text-primary mx-auto mb-4" />
             <h3 className="font-semibold mb-2">Record Audio</h3>
             <p className="text-slate-600 text-sm">
               Record directly in your browser
             </p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <Youtube className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+            <Youtube className="w-12 h-12 text-primary mx-auto mb-4" />
             <h3 className="font-semibold mb-2">YouTube Video</h3>
             <p className="text-slate-600 text-sm">
               Analyze any YouTube video URL

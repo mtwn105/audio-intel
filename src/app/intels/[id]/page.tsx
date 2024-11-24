@@ -16,7 +16,7 @@ export default async function IntelPage({
 }: {
   params: { id: string };
 }) {
-  const { id } = await params;
+  const { id } = params;
   const intel = await getIntel(id);
 
   if (!intel) {
