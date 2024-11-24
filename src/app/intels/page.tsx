@@ -8,7 +8,7 @@ import IntelsTable from "@/components/intels-table";
 import { SelectTranscript } from "@/lib/schemas";
 export default async function IntelsPage() {
   const session = await auth.api.getSession({
-    headers: await headers(), // you need to pass the headers object.
+    headers: await headers(),
   });
 
   const userId = session?.user?.id;
@@ -30,13 +30,10 @@ export default async function IntelsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Your Intels</h1>
-          <p className="text-sm text-gray-500">
-            Here you can view all your intels
-          </p>
         </div>
         {intels.length > 0 && (
           <Button asChild>
-            <Link href="/app">Create new Intel</Link>
+            <Link href="/app">Create New Intel</Link>
           </Button>
         )}
       </div>
@@ -44,8 +41,12 @@ export default async function IntelsPage() {
         {intels.length === 0 && (
           <>
             <div className=" text-gray-500 mt-8">No intels found</div>
+            <p className="text-sm text-gray-500">
+              Create an Intel by uploading an audio file, recording a new one or
+              by pasting a YouTube URL
+            </p>
             <Button className="mt-4" asChild>
-              <Link href="/app">Create new Intel</Link>
+              <Link href="/app">Create New Intel</Link>
             </Button>
           </>
         )}

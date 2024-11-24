@@ -182,9 +182,9 @@ export function SignUp() {
                     });
                   },
                   onSuccess: async () => {
-                    router.push("/intels");
                     toast.success("Account created successfully");
                     op.track("signup_success");
+                    router.push("/intels");
                   },
                 },
               });

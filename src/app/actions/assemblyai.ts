@@ -19,7 +19,6 @@ export const generateIntel = async (fileUrl: string): Promise<Intel> => {
     summary_model: 'conversational',
     summary_type: 'bullets',
     sentiment_analysis: true,
-    entity_detection: true,
     iab_categories: true,
   });
 

@@ -541,19 +541,19 @@ export default function AppPage() {
           <Tabs defaultValue="overview" className="w-full mt-4">
             <TabsList className="mb-4 w-full">
               <TabsTrigger value="overview" className="w-full">
-                <TableOfContentsIcon className="h-4 w-4 mr-2" />
+                <TableOfContentsIcon className="hidden md:inline h-4 w-4 mr-2" />
                 Overview
               </TabsTrigger>
               <TabsTrigger value="transcript" className="w-full">
-                <CaptionsIcon className="h-4 w-4 mr-2" />
+                <CaptionsIcon className="hidden md:inline h-4 w-4 mr-2" />
                 Transcript
               </TabsTrigger>
               <TabsTrigger value="chat" className="w-full">
-                <BotMessageSquareIcon className="h-4 w-4 mr-2" />
+                <BotMessageSquareIcon className="hidden md:inline h-4 w-4 mr-2" />
                 Chat
               </TabsTrigger>
               <TabsTrigger value="blog" className="w-full">
-                <PenSquareIcon className="h-4 w-4 mr-2" />
+                <PenSquareIcon className="hidden md:inline h-4 w-4 mr-2" />
                 Blog Post
               </TabsTrigger>
             </TabsList>
