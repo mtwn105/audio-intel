@@ -118,6 +118,7 @@ Answer Format:
     title: title,
     keySections: keySections,
     blogPost: blogPost,
+    overallSentiment: "",
   };
 };
 
