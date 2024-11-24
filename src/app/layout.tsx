@@ -8,6 +8,7 @@ import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/footer";
+import { OpenPanelComponent } from "@openpanel/nextjs";
 
 export const metadata: Metadata = {
   title: "AudioIntel",
@@ -33,6 +34,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
         <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />
+        <OpenPanelComponent
+          clientId="cbe01fd3-ed89-4a28-a297-85f052269233"
+          trackScreenViews={true}
+          trackAttributes={true}
+        />
         <Navbar />
         {children}
         <Footer />

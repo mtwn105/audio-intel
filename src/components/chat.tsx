@@ -7,13 +7,18 @@ import { chat, Message } from "@/app/actions/chat";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 export default function Chat({ intel }: { intel: Intel | SelectTranscript }) {
+  const op = useOpenPanel();
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [userMessage, setUserMessage] = useState<string>("");
 
   const handleSendMessage = async () => {
     if (userMessage.length === 0) return;
+
+    op.track("message_sent");
 
     // Create new array with current message
     const newMessages = [
@@ -40,10 +45,13 @@ export default function Chat({ intel }: { intel: Intel | SelectTranscript }) {
         newMessages[newMessages.length - 1]
       );
 
+      op.track("message_received");
+
       // Update with response
       setMessages([...newMessages, assistantMessage]);
     } catch (error) {
       console.error(error);
+      op.track("message_error");
       toast.error("Error sending message");
     }
   };

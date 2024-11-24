@@ -16,8 +16,10 @@ import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/auth-client";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 export function SignUp() {
+  const op = useOpenPanel();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -36,6 +38,7 @@ export function SignUp() {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      op.track("profile_image_uploaded");
     }
   };
   const [loading, setLoading] = useState(false);
@@ -138,6 +141,7 @@ export function SignUp() {
                     onClick={() => {
                       setImage(null);
                       setImagePreview(null);
+                      op.track("profile_image_removed");
                     }}
                   />
                 )}
@@ -151,6 +155,7 @@ export function SignUp() {
             onClick={async () => {
               if (password !== passwordConfirmation) {
                 toast.error("Passwords do not match");
+                op.track("signup_password_mismatch");
                 return;
               }
 
@@ -166,13 +171,20 @@ export function SignUp() {
                   },
                   onRequest: () => {
                     setLoading(true);
+                    op.track("signup_attempt", {
+                      hasImage: !!image,
+                    });
                   },
                   onError: (ctx) => {
                     toast.error(ctx.error.message);
+                    op.track("signup_error", {
+                      error: ctx.error.message,
+                    });
                   },
                   onSuccess: async () => {
                     router.push("/intels");
                     toast.success("Account created successfully");
+                    op.track("signup_success");
                   },
                 },
               });

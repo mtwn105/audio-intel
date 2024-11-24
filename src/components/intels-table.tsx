@@ -27,6 +27,8 @@ import {
 import { useRouter } from "next/navigation";
 import { deleteIntel } from "@/queries/intel-queries";
 import { toast } from "sonner";
+import { useOpenPanel } from "@openpanel/nextjs";
+
 export default function IntelsTable({
   intels,
   className,
@@ -35,19 +37,24 @@ export default function IntelsTable({
   className?: string;
 }) {
   const router = useRouter();
+  const op = useOpenPanel();
 
   const handleView = (id: string) => {
+    op.track("intel_viewed", { intel_id: id });
     router.push(`/intels/${id}`);
   };
 
   const handleDelete = async (id: string) => {
     try {
+      op.track("intel_delete_started", { intel_id: id });
       await deleteIntel(id);
       toast.success("Intel deleted successfully");
+      op.track("intel_deleted_success", { intel_id: id });
       router.refresh();
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete intel");
+      op.track("intel_delete_error", { intel_id: id, error: error });
     }
   };
 

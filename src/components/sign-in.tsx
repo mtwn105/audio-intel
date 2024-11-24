@@ -15,7 +15,10 @@ import { signIn } from "@/lib/auth-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useOpenPanel } from "@openpanel/nextjs";
+
 export default function SignIn() {
+  const op = useOpenPanel();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -80,16 +83,20 @@ export default function SignIn() {
             onClick={async () => {
               try {
                 setLoading(true);
+                op.track("login_attempt", { email });
                 const response = await signIn.email({ email, password });
                 console.log(response);
                 if (response.error) {
+                  op.track("login_error", { error: response.error.message });
                   toast.error(response.error.message);
                 } else {
+                  op.track("login_success");
                   toast.success("Logged in successfully");
                   router.push("/intels");
                 }
               } catch (error) {
                 console.log(error);
+                op.track("login_error", { error: "Something went wrong" });
                 toast.error("Something went wrong");
               } finally {
                 setLoading(false);

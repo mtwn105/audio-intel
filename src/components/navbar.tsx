@@ -16,9 +16,11 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter, usePathname } from "next/navigation";
+import { useOpenPanel } from "@openpanel/nextjs";
+
 const Navbar1 = () => {
   const { data, isPending } = useSession();
-
+  const op = useOpenPanel();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -41,6 +43,7 @@ const Navbar1 = () => {
                 pathname === "/" && "text-primary"
               )}
               href="/"
+              onClick={() => op.track("nav_home_click")}
             >
               Home
             </Link>
@@ -55,6 +58,7 @@ const Navbar1 = () => {
                   pathname === "/intels" && "text-primary"
                 )}
                 href="/intels"
+                onClick={() => op.track("nav_intels_click")}
               >
                 Intels
               </Link>
@@ -70,6 +74,7 @@ const Navbar1 = () => {
                   pathname === "/app" && "text-primary"
                 )}
                 href="/app"
+                onClick={() => op.track("nav_generate_click")}
               >
                 Generate
               </Link>
@@ -85,12 +90,25 @@ const Navbar1 = () => {
                   <AvatarFallback>{data.user.name[0]}</AvatarFallback>
                 </Avatar>
                 <p className="text-sm font-semibold">{data.user.name}</p>
-                <Button variant={"destructive"} onClick={() => signOut()}>
+                <Button
+                  variant={"destructive"}
+                  onClick={() => {
+                    op.track("logout_click");
+                    signOut();
+                  }}
+                >
                   Log out
                 </Button>
               </>
             ) : (
-              <Button onClick={() => router.push("/sign-in")}>Sign in</Button>
+              <Button
+                onClick={() => {
+                  op.track("signin_click");
+                  router.push("/sign-in");
+                }}
+              >
+                Sign in
+              </Button>
             )}
           </div>
         )}
@@ -103,7 +121,11 @@ const Navbar1 = () => {
           </div>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant={"outline"} size={"icon"}>
+              <Button
+                variant={"outline"}
+                size={"icon"}
+                onClick={() => op.track("mobile_menu_open")}
+              >
                 <Menu className="size-4" />
               </Button>
             </SheetTrigger>
@@ -123,6 +145,7 @@ const Navbar1 = () => {
                     "font-semibold",
                     pathname === "/" && "text-primary"
                   )}
+                  onClick={() => op.track("mobile_nav_home_click")}
                 >
                   Home
                 </Link>
@@ -132,6 +155,7 @@ const Navbar1 = () => {
                     "font-semibold",
                     pathname === "/intels" && "text-primary"
                   )}
+                  onClick={() => op.track("mobile_nav_intels_click")}
                 >
                   Intels
                 </Link>
@@ -141,6 +165,7 @@ const Navbar1 = () => {
                     "font-semibold",
                     pathname === "/app" && "text-primary"
                   )}
+                  onClick={() => op.track("mobile_nav_generate_click")}
                 >
                   Generate
                 </Link>
@@ -160,6 +185,7 @@ const Navbar1 = () => {
                         <Button
                           variant={"destructive"}
                           onClick={async () => {
+                            op.track("mobile_logout_click");
                             await signOut();
                             router.push("/sign-in");
                           }}
@@ -168,7 +194,12 @@ const Navbar1 = () => {
                         </Button>
                       </>
                     ) : (
-                      <Button onClick={() => router.push("/sign-in")}>
+                      <Button
+                        onClick={() => {
+                          op.track("mobile_signin_click");
+                          router.push("/sign-in");
+                        }}
+                      >
                         Sign in
                       </Button>
                     )}

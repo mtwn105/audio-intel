@@ -15,12 +15,14 @@ import ConversationTimeline from "./conversation-timeline";
 import { UsersIcon } from "lucide-react";
 import { translateTranscript } from "@/app/actions/translate";
 import { useEffect, useState } from "react";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 export default function Transcript({
   intel,
 }: {
   intel: Intel | SelectTranscript;
 }) {
+  const op = useOpenPanel();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchedTranscript, setSearchedTranscript] = useState<
     TranscriptUtterance[]
@@ -75,6 +77,8 @@ export default function Transcript({
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    op.track("transcript_search", { query });
+
     const results = (
       intel!.transcriptUtterances as TranscriptUtterance[]
     ).filter((u) => u.text.toLowerCase().includes(query.toLowerCase()));
@@ -88,6 +92,8 @@ export default function Transcript({
   };
 
   const handleTranslate = async (to: string) => {
+    op.track("transcript_translate", { language: to });
+
     const translatedTranscript = await translateTranscript(
       intel!.transcriptUtterances as TranscriptUtterance[],
       to

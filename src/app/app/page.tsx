@@ -31,11 +31,13 @@ import Overview from "@/components/overview";
 import Transcript from "@/components/transcript";
 import Chat from "@/components/chat";
 import Blog from "@/components/blog";
+import { useOpenPanel } from "@openpanel/nextjs";
 
 export const maxDuration = 60;
 
 export default function AppPage() {
   const { data: session } = useSession();
+  const op = useOpenPanel();
 
   const [mode, setMode] = useState<"file" | "audio" | "youtube">("file");
   const [fileData, setFileData] = useState<ClientUploadedFileData<{
@@ -54,6 +56,7 @@ export default function AppPage() {
 
   const handleGenerateIntel = async () => {
     if (fileData) {
+      op.track("generate_intel_from_file");
       // Generate Intel
       try {
         setIsLoading(true);
@@ -106,9 +109,11 @@ export default function AppPage() {
           createdAt: new Date(),
           updatedAt: new Date(),
         });
+        op.track("intel_generated_from_file_success");
       } catch (error) {
         console.error(error);
         toast.error("Error generating intel");
+        op.track("intel_generated_from_file_error");
       } finally {
         setIsLoading(false);
       }
@@ -125,10 +130,12 @@ export default function AppPage() {
     // Validate youtube url
     if (!isValidYouTubeUrl(youtubeUrl)) {
       toast.error("Invalid Youtube URL");
+      op.track("invalid_youtube_url");
       return;
     }
 
     try {
+      op.track("generate_intel_from_youtube");
       setIsLoading(true);
       setIntel(null);
       console.log("Generating mp3 from youtube");
@@ -182,9 +189,11 @@ export default function AppPage() {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+      op.track("intel_generated_from_youtube_success");
     } catch (error) {
       console.error(error);
       toast.error("Error generating intel");
+      op.track("intel_generated_from_youtube_error");
     } finally {
       setIsLoading(false);
     }
@@ -194,6 +203,7 @@ export default function AppPage() {
     if (files.length === 0) return;
 
     try {
+      op.track("generate_intel_from_recording");
       setIsLoading(true);
       setIntel(null);
       console.log("Generating intel from record");
@@ -250,10 +260,12 @@ export default function AppPage() {
           createdAt: new Date(),
           updatedAt: new Date(),
         });
+        op.track("intel_generated_from_recording_success");
       }
     } catch (error) {
       console.error(error);
       toast.error("Error generating intel");
+      op.track("intel_generated_from_recording_error");
     } finally {
       setIsLoading(false);
     }
@@ -290,6 +302,7 @@ export default function AppPage() {
                 setFileData(null);
                 setFiles([]);
                 setIntel(null);
+                op.track("remove_file");
               }}
             >
               <TrashIcon className="h-4 w-4" />
@@ -300,9 +313,10 @@ export default function AppPage() {
       ) : (
         <div className="flex flex-col gap-2 mt-4">
           <RadioGroup
-            onValueChange={(value) =>
-              setMode(value as "file" | "audio" | "youtube")
-            }
+            onValueChange={(value) => {
+              setMode(value as "file" | "audio" | "youtube");
+              op.track("change_input_mode", { mode: value });
+            }}
             defaultValue="file"
           >
             <div className="flex items-center space-x-2">
@@ -323,15 +337,18 @@ export default function AppPage() {
               onChange={(files) => {
                 console.log("Files", files);
                 setFiles(files);
+                op.track("file_selected");
               }}
               onClientUploadComplete={(res) => {
                 console.log("Files", res);
                 console.log("Files uploaded");
                 setFileData(res[0]);
+                op.track("file_upload_complete");
               }}
               onUploadError={(error) => {
                 console.error(error);
                 setFileData(null);
+                op.track("file_upload_error");
               }}
               config={{
                 mode: "auto",
@@ -347,6 +364,7 @@ export default function AppPage() {
                     size="lg"
                     className="min-w-[150px] gap-2"
                     onClick={() => {
+                      op.track("start_recording");
                       // @ts-expect-error window.stream is not defined in the global scope
                       const mediaRecorder = new MediaRecorder(window.stream);
                       mediaRecorder.start();
@@ -370,6 +388,7 @@ export default function AppPage() {
                           }
                         );
                         setFiles([audioFile]);
+                        op.track("recording_complete");
                       });
 
                       setMediaRecorder(mediaRecorder);
@@ -387,6 +406,7 @@ export default function AppPage() {
                     onClick={() => {
                       mediaRecorder?.stop();
                       setIsRecording(false);
+                      op.track("stop_recording");
                     }}
                     disabled={!isRecording}
                   >
@@ -410,9 +430,11 @@ export default function AppPage() {
                           // @ts-expect-error window.stream is not defined in the global scope
                           window.stream = stream;
                           setHasPermission(true);
+                          op.track("microphone_permission_granted");
                         } catch (err) {
                           console.error("Error accessing microphone:", err);
                           toast.error("Could not access microphone");
+                          op.track("microphone_permission_denied");
                         }
                       }}
                     >
