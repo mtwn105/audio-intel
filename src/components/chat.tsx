@@ -27,6 +27,12 @@ export default function Chat({ intel }: { intel: Intel | SelectTranscript }) {
     // Clear input
     setUserMessage("");
 
+    // Set Dummy Loading Message
+    setMessages([
+      ...newMessages,
+      { role: "assistant", content: "Thinking..." },
+    ]);
+
     try {
       // Call chat API with new messages
       const assistantMessage = await chat(

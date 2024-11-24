@@ -36,7 +36,7 @@ export default async function IntelsPage() {
         </div>
         {intels.length > 0 && (
           <Button asChild>
-            <Link href="/app">Create new intel</Link>
+            <Link href="/app">Create new Intel</Link>
           </Button>
         )}
       </div>
@@ -45,7 +45,7 @@ export default async function IntelsPage() {
           <>
             <div className=" text-gray-500 mt-8">No intels found</div>
             <Button className="mt-4" asChild>
-              <Link href="/app">Create new intel</Link>
+              <Link href="/app">Create new Intel</Link>
             </Button>
           </>
         )}

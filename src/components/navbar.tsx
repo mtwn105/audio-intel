@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 const Navbar1 = () => {
   const {
     data,
@@ -24,13 +24,14 @@ const Navbar1 = () => {
   } = useSession();
 
   const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <>
       <nav className="hidden p-4 justify-between md:flex">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <Brain className="size-6" />
+            <Brain className="size-6 text-primary" />
             <span className="text-xl font-bold">AudioIntel</span>
           </div>
           <div className="flex items-center">
@@ -40,7 +41,8 @@ const Navbar1 = () => {
                 navigationMenuTriggerStyle,
                 buttonVariants({
                   variant: "ghost",
-                })
+                }),
+                pathname === "/" && "text-primary"
               )}
               href="/"
             >
@@ -53,7 +55,8 @@ const Navbar1 = () => {
                   navigationMenuTriggerStyle,
                   buttonVariants({
                     variant: "ghost",
-                  })
+                  }),
+                  pathname === "/intels" && "text-primary"
                 )}
                 href="/intels"
               >
@@ -67,7 +70,8 @@ const Navbar1 = () => {
                   navigationMenuTriggerStyle,
                   buttonVariants({
                     variant: "ghost",
-                  })
+                  }),
+                  pathname === "/app" && "text-primary"
                 )}
                 href="/app"
               >
@@ -98,7 +102,7 @@ const Navbar1 = () => {
       <div className="block p-4 md:hidden">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Brain className="size-6" />
+            <Brain className="size-6 text-primary" />
             <span className="text-xl font-bold">AudioIntel</span>
           </div>
           <Sheet>
@@ -117,13 +121,31 @@ const Navbar1 = () => {
                 </SheetTitle>
               </SheetHeader>
               <div className="my-8 flex flex-col gap-4">
-                <Link href="/" className="font-semibold">
+                <Link
+                  href="/"
+                  className={cn(
+                    "font-semibold",
+                    pathname === "/" && "text-primary"
+                  )}
+                >
                   Home
                 </Link>
-                <Link href="/intels" className="font-semibold">
+                <Link
+                  href="/intels"
+                  className={cn(
+                    "font-semibold",
+                    pathname === "/intels" && "text-primary"
+                  )}
+                >
                   Intels
                 </Link>
-                <Link href="/app" className="font-semibold">
+                <Link
+                  href="/app"
+                  className={cn(
+                    "font-semibold",
+                    pathname === "/app" && "text-primary"
+                  )}
+                >
                   Generate
                 </Link>
               </div>
