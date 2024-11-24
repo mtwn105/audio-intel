@@ -93,7 +93,7 @@ export default function AppPage() {
                 intel.transcriptUtterances.map((u) => u.speaker)
               ).size.toString()
             : "0",
-          userId: session?.user.id!,
+          userId: session?.user.id || "",
           transcriptId: intel.id,
           transcriptUtterances: intel.transcriptUtterances,
           summary: intel.summary,
@@ -169,7 +169,7 @@ export default function AppPage() {
               intel.transcriptUtterances.map((u) => u.speaker)
             ).size.toString()
           : "0",
-        userId: session?.user.id!,
+        userId: session?.user.id || "",
         transcriptId: intel.id,
         transcriptUtterances: intel.transcriptUtterances,
         summary: intel.summary,
@@ -237,7 +237,7 @@ export default function AppPage() {
                 intel.transcriptUtterances.map((u) => u.speaker)
               ).size.toString()
             : "0",
-          userId: session?.user.id!,
+          userId: session?.user.id || "",
           transcriptId: intel.id,
           transcriptUtterances: intel.transcriptUtterances,
           summary: intel.summary,
