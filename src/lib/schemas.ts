@@ -49,6 +49,11 @@ export const verification = pgTable("verification", {
 export const transcript = pgTable("transcripts", {
   id: text("id").primaryKey(),
   userId: text('userId').notNull().references(() => user.id),
+  fileUrl: text('fileUrl'),
+  youtubeUrl: text('youtubeUrl'),
+  overallSentiment: text('overallSentiment'),
+  duration: text('duration'),
+  speakerCount: text('speakerCount'),
   transcriptId: text('transcriptId').notNull(),
   transcriptUtterances: jsonb('transcriptUtterances'),
   summary: text('summary'),

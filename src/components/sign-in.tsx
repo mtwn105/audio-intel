@@ -14,13 +14,13 @@ import { Loader2 } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-
+import { useRouter } from "next/navigation";
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-
+  const router = useRouter();
   return (
     <Card className="max-w-md">
       <CardHeader>
@@ -86,6 +86,7 @@ export default function SignIn() {
                   toast.error(response.error.message);
                 } else {
                   toast.success("Logged in successfully");
+                  router.push("/intels");
                 }
               } catch (error) {
                 console.log(error);

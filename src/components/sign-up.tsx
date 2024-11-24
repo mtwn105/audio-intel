@@ -172,7 +172,7 @@ export function SignUp() {
                     toast.error(ctx.error.message);
                   },
                   onSuccess: async () => {
-                    router.push("/app");
+                    router.push("/intels");
                     toast.success("Account created successfully");
                   },
                 },

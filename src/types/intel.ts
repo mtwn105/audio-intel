@@ -19,6 +19,7 @@ export type Intel = {
   title: string;
   keySections: KeySection[] | null;
   blogPost: string;
+  overallSentiment: string | null;
 };
 
 

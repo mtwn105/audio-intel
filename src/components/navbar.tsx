@@ -60,6 +60,20 @@ const Navbar1 = () => {
                 Intels
               </Link>
             )}
+            {!isPending && data?.user && (
+              <Link
+                className={cn(
+                  "text-muted-foreground",
+                  navigationMenuTriggerStyle,
+                  buttonVariants({
+                    variant: "ghost",
+                  })
+                )}
+                href="/app"
+              >
+                Generate
+              </Link>
+            )}
           </div>
         </div>
         {!isPending && (
@@ -106,6 +120,12 @@ const Navbar1 = () => {
                 <Link href="/" className="font-semibold">
                   Home
                 </Link>
+                <Link href="/intels" className="font-semibold">
+                  Intels
+                </Link>
+                <Link href="/app" className="font-semibold">
+                  Generate
+                </Link>
               </div>
               <div className="border-t pt-4">
                 {!isPending && (
@@ -121,7 +141,10 @@ const Navbar1 = () => {
                         </p>
                         <Button
                           variant={"destructive"}
-                          onClick={() => signOut()}
+                          onClick={async () => {
+                            await signOut();
+                            router.push("/sign-in");
+                          }}
                         >
                           Log out
                         </Button>
