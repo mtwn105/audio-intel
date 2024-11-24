@@ -30,7 +30,7 @@ export default function TopOverview({
       : "Neutral";
 
   return (
-    <div>
+    <div className="flex flex-col gap-4 items-center justify-center border p-4 rounded-lg">
       {(intel as SelectTranscript).fileUrl && (
         <div>
           <AudioPlayer audioUrl={(intel as SelectTranscript).fileUrl!} />
@@ -49,6 +49,8 @@ export default function TopOverview({
           ></iframe>
         </div>
       )}
+
+      <h2 className="text-2xl mb-2 font-bold">Title: {intel.title}</h2>
       <div className="flex w-full gap-4 mb-4">
         <div className="flex w-full items-center gap-2 rounded-lg border p-3">
           <UsersIcon className="h-4 w-4" />
@@ -100,7 +102,6 @@ export default function TopOverview({
           </div>
         </div>
       </div>
-      <h2 className="text-2xl mb-2 font-bold">Title: {intel.title}</h2>
     </div>
   );
 }

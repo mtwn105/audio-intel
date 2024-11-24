@@ -61,7 +61,9 @@ export default function IntelsTable({
       header: "Title",
       accessorKey: "title",
       cell: ({ row }) => {
-        return <p className="font-medium text-nowrap">{row.original.title}</p>;
+        return (
+          <p className="font-semibold text-nowrap">{row.original.title}</p>
+        );
       },
     },
     {
